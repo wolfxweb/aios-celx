@@ -361,6 +361,63 @@ program
     }
 
     const routing = resolveExecutionConfig(projectConfig, agentId);
+
+    if (agentId === "engineer") {
+      const taskId = state.currentTaskId;
+      if (!taskId || taskId.length === 0) {
+        console.error(
+          `No currentTaskId in project state. Set it (e.g. edit .aios/state.json) or run: aios run:task --project ${opts.project} --task <TASK-ID>`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+      const taskResult = await runEngineerTask({
+        projectsRoot: root,
+        projectId: opts.project,
+        taskId,
+      });
+      const result = {
+        agentId: "engineer" as const,
+        success: taskResult.ok,
+        message: taskResult.message,
+        artifactsWritten: taskResult.ok ? [taskResult.reportPath] : [],
+        errors: taskResult.ok ? undefined : ["engineer-task-failed"],
+      };
+      console.log(JSON.stringify({ engine: routing, result, taskId, via: "runEngineerTask" }, null, 2));
+      if (!result.success) {
+        process.exitCode = 1;
+      }
+      return;
+    }
+
+    if (agentId === "qa-reviewer") {
+      const taskId = state.currentTaskId;
+      if (!taskId || taskId.length === 0) {
+        console.error(
+          `No currentTaskId in project state. Set it to the task under review or run: aios run:qa --project ${opts.project} --task <TASK-ID>`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+      const taskResult = await runQaTask({
+        projectsRoot: root,
+        projectId: opts.project,
+        taskId,
+      });
+      const result = {
+        agentId: "qa-reviewer" as const,
+        success: taskResult.ok,
+        message: taskResult.message,
+        artifactsWritten: taskResult.ok ? [taskResult.reportPath, taskResult.jsonPath] : [],
+        errors: taskResult.ok ? undefined : ["qa-task-failed"],
+      };
+      console.log(JSON.stringify({ engine: routing, result, taskId, via: "runQaTask" }, null, 2));
+      if (!result.success) {
+        process.exitCode = 1;
+      }
+      return;
+    }
+
     const result = await executeAgentWithEngine(
       agentId,
       projRoot,

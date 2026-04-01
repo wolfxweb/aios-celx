@@ -1,8 +1,9 @@
 id: full-catalog-delivery
 name: Full catalog delivery
 description: >-
-  Discovery → planning → architecture, then v2/v3 advisory agents (gates between each).
-  Activate with `workflow: full-catalog-delivery` in `.aios/config.yaml`.
+  Discovery → planning → architecture, v2/v3 advisory agents, then global implementation
+  (engineer → QA for `state.currentTaskId`). Activate with `workflow: full-catalog-delivery`
+  in `.aios/config.yaml`.
 
 steps:
   - id: discovery
@@ -153,3 +154,28 @@ steps:
       - docs/delivery-summary.md
     outputs:
       - docs/portfolio-outlook.md
+
+  - id: engineer
+    stage: implementation
+    agent: engineer
+    gate: task_ready_for_qa
+    inputs:
+      - docs/architecture.md
+      - docs/api-contracts.md
+      - backlog/tasks.yaml
+    outputs:
+      - docs/execution/*-implementation.md
+      - backlog/tasks.yaml
+
+  - id: qa-reviewer
+    stage: implementation
+    agent: qa-reviewer
+    gate: task_qa_approved
+    inputs:
+      - docs/architecture.md
+      - docs/api-contracts.md
+      - docs/execution/*-implementation.md
+    outputs:
+      - qa/reports/*-qa-report.md
+      - qa/reports/*-qa-report.json
+      - backlog/tasks.yaml

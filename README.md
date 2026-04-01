@@ -66,6 +66,34 @@ Estado em tempo de execução: **`projects/<id>/.aios/state.json`**. Backlog: **
 | **Fila + scheduler** | Enfileirar trabalhos; `scheduler:run` processa a fila respeitando **autonomia** e aprovações. |
 | **API + dashboard** | HTTP para integrações e UI de leitura/controlo (ver READMEs em `apps/api` e `apps/dashboard`). |
 
+## Agentes (catálogo)
+
+Registados em `@aios-celx/agent-runtime` e executáveis com `aios run --project <id> --agent <id>` (quando o estado do projeto espera esse agente), salvo onde está indicado outro comando. Com **`mock-engine`**, a maior parte dos agentes escreve relatórios e YAML de exemplo de forma determinística.
+
+**Implementação e QA por task:** **engineer** e **qa-reviewer** têm *runners* dedicados — preferir `aios run:task` e `aios run:qa` com `--task`. Se o projeto usa o workflow **`full-catalog-delivery`** e o passo activo é o desses agentes, `aios run --agent engineer` ou `qa-reviewer` também invoca o mesmo *runner*, desde que exista **`currentTaskId`** no estado (`.aios/state.json`).
+
+| ID | O que faz |
+|----|-----------|
+| `requirements-analyst` | **MVP** — Da visão bruta à descoberta estruturada (`docs/discovery.md`); reduz ambiguidade antes do PRD. |
+| `product-manager` | **MVP** — Da descoberta ao backlog executável: PRD, épicos, stories, tasks e critérios de aceite. |
+| `software-architect` | **MVP** — Arquitectura, módulos, *boundaries*, integrações, contratos de API, stack e padrões (`architecture` + `api-contracts`). |
+| `delivery-manager` | **MVP** — Coordenação operacional: estado, passo do workflow, *gates*, fila, saúde do backlog, bloqueios e comandos sugeridos (`delivery-status` / `delivery-summary`). |
+| `engineer` | **MVP** — Executa o trabalho técnico **por task**: relatório de implementação e actualização de estado da task (ver `run:task`). |
+| `qa-reviewer` | **MVP** — Revisa a entrega da task face a critérios de aceite e arquitectura; relatórios QA e estado QA na task (ver `run:qa`). |
+| `technical-writer` | **v2** — Documentação viva: sumário de decisões, *changelog* sugerido, alinhamento com README e *decision-log*. |
+| `refactor-guardian` | **v2** — Sinaliza dívida técnica, acoplamento e desvio de padrões (relatório orientador). |
+| `integration-specialist` | **v2** — Mapa de integrações externas, riscos e contratos (e.g. pagamentos, mensagens, *backend* externo). |
+| `db-designer` | **v2** — Notas de modelo de dados, entidades e impacto de *schema* (sem migrações reais no *mock*). |
+| `security-reviewer` | **v2** — *Checklist* de riscos: autenticação, segredos, exposição de dados, superfície de API. |
+| `ux-reviewer` | **v2** — Jornada, clareza, fricção e consistência de experiência (relatório qualitativo). |
+| `sprint-planner` | **v3** — Agrupa tasks por onda ou *sprint*, dependências e ordem sugerida. |
+| `cost-optimizer` | **v3** — Rascunho de política de custo (LLM/infra), *fallback* económico e limites (*mock*, sem *billing* real). |
+| `observability-agent` | **v3** — *Brief* de logs, correlação, falhas e rastreabilidade operacional. |
+| `release-manager` | **v3** — Prontidão de *release*: critérios, notas e *snapshot* do backlog. |
+| `portfolio-strategist` | **v3** — Visão entre projectos: priorização relativa e dependências (*mock*; *portfolio* real vem do monorepo). |
+
+Workflow em cadeia com a maior parte destes papéis: ficheiro **`full-catalog-delivery`** em `packages/workflow-engine/workflows/` (activar com `workflow: full-catalog-delivery` em `.aios/config.yaml`). O fluxo mínimo por defeito é só descoberta → planeamento → arquitectura (**`default-software-delivery`**).
+
 ## Uso (CLI)
 
 Criação e visão geral: em **`project:create`**, omitir **`--blueprint`** usa o blueprint por omissão do sistema (hoje **`saas-webapp`**, definido em `@aios-celx/blueprints`).
