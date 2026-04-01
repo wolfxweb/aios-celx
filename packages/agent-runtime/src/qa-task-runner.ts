@@ -15,7 +15,7 @@ import {
   QAReportSchema,
 } from "@aios-celx/shared";
 import { readState, updateState } from "@aios-celx/state-manager";
-import { loadDefaultSoftwareDeliveryWorkflow } from "@aios-celx/workflow-engine";
+import { loadWorkflowForConfig } from "@aios-celx/workflow-engine";
 import { join } from "node:path";
 import { appendExecutionLogLine } from "./project-logs.js";
 
@@ -146,7 +146,7 @@ export async function runQaTask(options: {
   const { projectsRoot, projectId, taskId } = options;
   const projectRoot = join(projectsRoot, projectId);
 
-  await loadProjectConfig(projectsRoot, projectId);
+  const config = await loadProjectConfig(projectsRoot, projectId);
   let tasksDoc = await loadTasks(projectRoot);
   const task = findTaskById(tasksDoc, taskId);
   if (!task) {
@@ -176,7 +176,7 @@ export async function runQaTask(options: {
   });
 
   const state = await readState(projectsRoot, projectId);
-  const workflow = await loadDefaultSoftwareDeliveryWorkflow();
+  const workflow = await loadWorkflowForConfig(config);
   const resolved = await resolveAgentContext({
     projectsRoot,
     projectId,

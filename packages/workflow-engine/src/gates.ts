@@ -24,6 +24,25 @@ function hasAll(text: string, needles: string[]): GateCheck[] {
   }));
 }
 
+async function markdownDocGate(
+  projectRoot: string,
+  gateId: string,
+  relPath: string,
+  markers: string[],
+): Promise<GateResult> {
+  const path = join(projectRoot, relPath);
+  if (!(await pathExists(path))) {
+    return {
+      gateId,
+      passed: false,
+      checks: [{ id: `file:${relPath}`, passed: false, detail: `${relPath} missing` }],
+    };
+  }
+  const text = await readUtf8(path);
+  const checks = hasAll(text, markers);
+  return { gateId, passed: checks.every((c) => c.passed), checks };
+}
+
 type YamlListDoc = { epics?: unknown[]; stories?: unknown[]; tasks?: unknown[] };
 
 export type GateEvaluationContext = {
@@ -182,6 +201,66 @@ export async function evaluateGate(
         ],
       };
     }
+
+    case "technical_writer_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/living-documentation.md", [
+        "## Executive summary",
+        "## Doc coverage",
+      ]);
+
+    case "refactor_guardian_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/technical-health-report.md", [
+        "## Focus",
+        "## Heuristic findings",
+      ]);
+
+    case "integration_landscape_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/integration-landscape.md", [
+        "## External systems",
+        "## Contract touchpoints",
+      ]);
+
+    case "data_model_notes_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/data-model-notes.md", [
+        "## Candidate entities",
+        "## Relationships",
+      ]);
+
+    case "security_review_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/security-review.md", ["## Checklist", "## Findings"]);
+
+    case "ux_review_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/ux-review.md", [
+        "## Journey hypotheses",
+        "## Friction radar",
+      ]);
+
+    case "sprint_plan_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/sprint-plan.md", [
+        "## Proposed waves",
+        "## Dependency rules",
+      ]);
+
+    case "cost_optimization_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/cost-optimization.md", [
+        "## Policy draft",
+        "## Guardrails",
+      ]);
+
+    case "observability_brief_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/observability-brief.md", [
+        "## Recommended signals",
+        "## Failure patterns",
+      ]);
+
+    case "release_readiness_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/release-readiness.md", ["## Gates", "## Release notes"]);
+
+    case "portfolio_outlook_complete":
+      return markdownDocGate(projectRoot, gateId, "docs/portfolio-outlook.md", [
+        "## Relative priority",
+        "## Cross-project prompts",
+      ]);
 
     default:
       return {

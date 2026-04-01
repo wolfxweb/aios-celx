@@ -50,7 +50,7 @@ import {
   evaluateGate,
   getActiveStep,
   getNextStep,
-  loadDefaultSoftwareDeliveryWorkflow,
+  loadWorkflowForConfig,
   resolveNextAction,
   syncStateToActiveStep,
 } from "@aios-celx/workflow-engine";
@@ -283,11 +283,11 @@ program
       process.exitCode = 1;
       return;
     }
-    const [workflow, state0, projectConfig] = await Promise.all([
-      loadDefaultSoftwareDeliveryWorkflow(),
+    const [state0, projectConfig] = await Promise.all([
       readState(root, opts.project),
       loadProjectConfig(root, opts.project),
     ]);
+    const workflow = await loadWorkflowForConfig(projectConfig);
     let state = state0;
     const projRoot = projectPath(root, opts.project);
 
@@ -344,15 +344,15 @@ program
       process.exitCode = 1;
       return;
     }
-    const [workflow, state, projectConfig] = await Promise.all([
-      loadDefaultSoftwareDeliveryWorkflow(),
+    const [state, projectConfig] = await Promise.all([
       readState(root, opts.project),
       loadProjectConfig(root, opts.project),
     ]);
+    const workflow = await loadWorkflowForConfig(projectConfig);
     const projRoot = projectPath(root, opts.project);
     const agentId = opts.agent;
 
-    if (agentId !== "delivery-manager" && agentId !== state.currentAgent) {
+    if (!canRunWithoutCurrentAgentMatch(agentId) && agentId !== state.currentAgent) {
       console.error(
         `Agent mismatch: requested ${agentId} but project state expects ${state.currentAgent}.`,
       );
@@ -387,7 +387,8 @@ program
       process.exitCode = 1;
       return;
     }
-    const workflow = await loadDefaultSoftwareDeliveryWorkflow();
+    const projectConfig = await loadProjectConfig(root, opts.project);
+    const workflow = await loadWorkflowForConfig(projectConfig);
     const state = await readState(root, opts.project);
     const projRoot = projectPath(root, opts.project);
     const gateId = opts.gate;

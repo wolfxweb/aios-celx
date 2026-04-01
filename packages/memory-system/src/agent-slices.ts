@@ -8,7 +8,19 @@ export const AGENT_MEMORY_CATEGORIES: Partial<Record<string, MemoryCategory[]>> 
   "product-manager": ["product-context", "business-rules", "workflow-notes"],
   "software-architect": ["technical-decisions", "architecture", "integrations"],
   "delivery-manager": ["workflow-notes", "execution-history"],
+  engineer: ["technical-decisions", "coding-standards", "execution-history"],
   "qa-reviewer": ["coding-standards", "execution-history", "technical-decisions"],
+  "technical-writer": ["workflow-notes", "product-context", "technical-decisions"],
+  "refactor-guardian": ["technical-decisions", "architecture", "coding-standards"],
+  "integration-specialist": ["integrations", "business-rules", "technical-decisions"],
+  "db-designer": ["architecture", "domain-context", "technical-decisions"],
+  "security-reviewer": ["technical-decisions", "business-rules"],
+  "ux-reviewer": ["product-context", "business-rules", "domain-context"],
+  "sprint-planner": ["workflow-notes", "execution-history"],
+  "cost-optimizer": ["workflow-notes", "technical-decisions"],
+  "observability-agent": ["technical-decisions", "execution-history"],
+  "release-manager": ["workflow-notes", "product-context"],
+  "portfolio-strategist": ["product-context", "business-rules", "workflow-notes"],
 };
 
 function filterEntries(entries: MemoryEntry[], categories: MemoryCategory[] | undefined): MemoryEntry[] {

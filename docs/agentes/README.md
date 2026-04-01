@@ -17,24 +17,26 @@ Os dois últimos aparecem no registry para I/O e `listAgents`, mas a execução 
 
 ## Camada v2 (recomendada, após MVP sólido)
 
-| ID | Papel |
-|----|--------|
-| `technical-writer` | Documentação viva, changelog, README do projeto |
-| `refactor-guardian` | Dívida técnica, acoplamento, padrões |
-| `integration-specialist` | Integrações externas (APIs, Stripe, WhatsApp, n8n, etc.) |
-| `db-designer` | Modelagem de dados e impacto de schema |
-| `security-reviewer` | Riscos básicos (auth, segredos, exposição) |
-| `ux-reviewer` | Jornada, clareza, fricção |
+Implementados como **mocks** em `packages/agent-runtime/src/agents/<id>/` — `pnpm exec aios run --project <id> --agent <agente>` (não entram no workflow YAML por defeito).
+
+| ID | Papel | Saída principal (mock) |
+|----|--------|-------------------------|
+| `technical-writer` | Documentação viva, changelog, README do projeto | `docs/living-documentation.md` |
+| `refactor-guardian` | Dívida técnica, acoplamento, padrões | `docs/technical-health-report.md` |
+| `integration-specialist` | Integrações externas | `docs/integration-landscape.md` |
+| `db-designer` | Modelagem de dados | `docs/data-model-notes.md` |
+| `security-reviewer` | Riscos básicos | `docs/security-review.md` |
+| `ux-reviewer` | Jornada, clareza, fricção | `docs/ux-review.md` |
 
 ## Camada v3 (futura / sistema maduro)
 
-| ID | Papel |
-|----|--------|
-| `sprint-planner` | Sprints, capacidade, previsão |
-| `cost-optimizer` | Custo de modelos e infra (LLM routing) |
-| `observability-agent` | Logs, falhas, rastreabilidade |
-| `release-manager` | Releases, release notes, prontidão de deploy |
-| `portfolio-strategist` | Entre projetos, priorização, alocação |
+| ID | Papel | Saída principal (mock) |
+|----|--------|-------------------------|
+| `sprint-planner` | Sprints, capacidade, previsão | `docs/sprint-plan.md` |
+| `cost-optimizer` | Custo de modelos e infra | `docs/cost-optimization.md` |
+| `observability-agent` | Logs, falhas, rastreabilidade | `docs/observability-brief.md` |
+| `release-manager` | Releases, readiness | `docs/release-readiness.md` |
+| `portfolio-strategist` | Entre projetos (nota: mock usa só artefactos do projeto) | `docs/portfolio-outlook.md` |
 
 ## Leitura relacionada
 

@@ -1,0 +1,155 @@
+id: full-catalog-delivery
+name: Full catalog delivery
+description: >-
+  Discovery → planning → architecture, then v2/v3 advisory agents (gates between each).
+  Activate with `workflow: full-catalog-delivery` in `.aios/config.yaml`.
+
+steps:
+  - id: discovery
+    stage: discovery
+    agent: requirements-analyst
+    gate: discovery_complete
+    inputs:
+      - docs/vision.md
+    outputs:
+      - docs/discovery.md
+
+  - id: planning
+    stage: planning
+    agent: product-manager
+    gate: planning_complete
+    inputs:
+      - docs/discovery.md
+    outputs:
+      - docs/prd.md
+      - backlog/epics.yaml
+      - backlog/stories.yaml
+      - backlog/tasks.yaml
+
+  - id: architecture
+    stage: architecture
+    agent: software-architect
+    gate: architecture_complete
+    inputs:
+      - docs/discovery.md
+      - docs/prd.md
+      - backlog/stories.yaml
+    outputs:
+      - docs/architecture.md
+      - docs/api-contracts.md
+
+  - id: technical-writer
+    stage: governance
+    agent: technical-writer
+    gate: technical_writer_complete
+    inputs:
+      - docs/discovery.md
+      - docs/prd.md
+      - docs/architecture.md
+      - docs/api-contracts.md
+    outputs:
+      - docs/living-documentation.md
+
+  - id: refactor-guardian
+    stage: governance
+    agent: refactor-guardian
+    gate: refactor_guardian_complete
+    inputs:
+      - docs/architecture.md
+      - docs/api-contracts.md
+      - backlog/tasks.yaml
+    outputs:
+      - docs/technical-health-report.md
+
+  - id: integration-specialist
+    stage: integration
+    agent: integration-specialist
+    gate: integration_landscape_complete
+    inputs:
+      - docs/discovery.md
+      - docs/prd.md
+      - docs/architecture.md
+      - docs/api-contracts.md
+    outputs:
+      - docs/integration-landscape.md
+
+  - id: db-designer
+    stage: design
+    agent: db-designer
+    gate: data_model_notes_complete
+    inputs:
+      - docs/prd.md
+      - docs/architecture.md
+      - backlog/stories.yaml
+    outputs:
+      - docs/data-model-notes.md
+
+  - id: security-reviewer
+    stage: quality
+    agent: security-reviewer
+    gate: security_review_complete
+    inputs:
+      - docs/prd.md
+      - docs/architecture.md
+    outputs:
+      - docs/security-review.md
+
+  - id: ux-reviewer
+    stage: quality
+    agent: ux-reviewer
+    gate: ux_review_complete
+    inputs:
+      - docs/prd.md
+      - backlog/stories.yaml
+    outputs:
+      - docs/ux-review.md
+
+  - id: sprint-planner
+    stage: operations
+    agent: sprint-planner
+    gate: sprint_plan_complete
+    inputs:
+      - docs/prd.md
+      - backlog/tasks.yaml
+    outputs:
+      - docs/sprint-plan.md
+
+  - id: cost-optimizer
+    stage: operations
+    agent: cost-optimizer
+    gate: cost_optimization_complete
+    inputs:
+      - docs/prd.md
+      - docs/delivery-status.md
+    outputs:
+      - docs/cost-optimization.md
+
+  - id: observability-agent
+    stage: operations
+    agent: observability-agent
+    gate: observability_brief_complete
+    inputs:
+      - docs/architecture.md
+      - docs/delivery-status.md
+    outputs:
+      - docs/observability-brief.md
+
+  - id: release-manager
+    stage: operations
+    agent: release-manager
+    gate: release_readiness_complete
+    inputs:
+      - docs/prd.md
+      - backlog/tasks.yaml
+    outputs:
+      - docs/release-readiness.md
+
+  - id: portfolio-strategist
+    stage: portfolio
+    agent: portfolio-strategist
+    gate: portfolio_outlook_complete
+    inputs:
+      - docs/prd.md
+      - docs/delivery-summary.md
+    outputs:
+      - docs/portfolio-outlook.md

@@ -2,6 +2,8 @@
 
 Referência de produto. Índice curto: [README.md](./README.md). Plano técnico e testes: [plano-implementacao.md](./plano-implementacao.md).
 
+**Implementação no código:** todos os IDs MVP + v2 + v3 estão registados em `packages/agent-runtime` com mocks (`run.ts` + `prompt-template.md`), salvo **engineer** / **qa-reviewer** (execução por `run:task` / `run:qa`). O workflow por defeito (`default-software-delivery`) cobre discovery → planning → architecture. Para encadear também os agentes v2/v3 com gates, defina em `.aios/config.yaml` `workflow: full-catalog-delivery` (ficheiro em `packages/workflow-engine/workflows/`). Os agentes *advisory* podem ainda correr avulso com `aios run --agent <id>` sem coincidir com `currentAgent`.
+
 ---
 
 ## MVP obrigatório (núcleo inicial)

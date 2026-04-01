@@ -22,7 +22,7 @@ Este ficheiro resume como trabalhar **no monorepo aios-celx** sem desalinhar o f
 ## Catálogo de agentes (MVP, roadmap, testes)
 
 - **Versionado no Git:** **[docs/agentes/README.md](./docs/agentes/README.md)** — núcleo de 6 agentes, v2, v3, ligação ao [plano de implementação e testes MVP](./docs/agentes/plano-implementacao.md).
-- **Definição por pasta (prompt + saída):** `packages/agent-runtime/src/agents/<id>/` — `definition.ts`, `prompt-template.md`, `output-schema.ts`, `run.ts` (ver `packages/agent-runtime/src/agents/README.md`).
+- **Definição por pasta (prompt + saída):** `packages/agent-runtime/src/agents/<id>/` — `definition.ts`, `prompt-template.md`, `output-schema.ts`, `run.ts` (ver `packages/agent-runtime/src/agents/README.md`). Inclui **v2 e v3** do catálogo (mocks); agentes *advisory* podem correr com `run --agent` sem coincidir com o passo activo do workflow (`canRunWithoutCurrentAgentMatch`).
 
 ## Plano de execução (desenvolvimento do framework)
 

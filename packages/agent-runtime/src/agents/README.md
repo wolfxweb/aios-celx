@@ -13,4 +13,6 @@ Pastas especiais:
 
 - **`engineer/`** e **`qa-reviewer/`** — só `definition` + templates + `output-schema`; a execução real está em `engineer-task-runner.ts` e `qa-task-runner.ts`. O `registry` usa `cli-route-hints` para `aios run --agent`.
 
+**v2 / v3** (catálogo): `technical-writer`, `refactor-guardian`, `integration-specialist`, `db-designer`, `security-reviewer`, `ux-reviewer`, `sprint-planner`, `cost-optimizer`, `observability-agent`, `release-manager`, `portfolio-strategist` — cada um com pasta completa; **mock-engine** gera relatórios em `docs/*.md`. Podem correr com `aios run --agent <id>` **sem** coincidir com `state.currentAgent` (ver `canRunWithoutCurrentAgentMatch` no `registry`).
+
 Utilitário partilhado: `src/agent-kit/load-prompt.ts` (`loadPromptTemplate`, `interpolateTemplate`).

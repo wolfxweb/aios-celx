@@ -52,6 +52,67 @@ export const AGENT_CONTEXT_RULES: Record<string, AgentContextRule> = {
     attachTaskJson: true,
     attachImplementationReport: true,
   },
+  "technical-writer": {
+    readPaths: [
+      "docs/discovery.md",
+      "docs/prd.md",
+      "docs/architecture.md",
+      "docs/decision-log.md",
+      "README.md",
+    ],
+    backlogMode: "none",
+    memory: { global: ["workflow-notes"], project: ["product-context", "technical-decisions"] },
+  },
+  "refactor-guardian": {
+    readPaths: ["docs/architecture.md", "docs/api-contracts.md", "backlog/tasks.yaml"],
+    backlogMode: "none",
+    memory: { global: [], project: ["technical-decisions", "architecture"] },
+  },
+  "integration-specialist": {
+    readPaths: ["docs/discovery.md", "docs/prd.md", "docs/api-contracts.md"],
+    backlogMode: "none",
+    memory: { global: [], project: ["integrations", "business-rules"] },
+  },
+  "db-designer": {
+    readPaths: ["docs/prd.md", "docs/architecture.md", "backlog/stories.yaml"],
+    backlogMode: "none",
+    memory: { global: [], project: ["architecture", "domain-context"] },
+  },
+  "security-reviewer": {
+    readPaths: ["docs/architecture.md", "docs/api-contracts.md", "docs/prd.md"],
+    backlogMode: "none",
+    memory: { global: [], project: ["technical-decisions", "business-rules"] },
+  },
+  "ux-reviewer": {
+    readPaths: ["docs/prd.md", "docs/discovery.md", "backlog/stories.yaml"],
+    backlogMode: "none",
+    memory: { global: [], project: ["product-context", "domain-context"] },
+  },
+  "sprint-planner": {
+    readPaths: ["backlog/tasks.yaml", "backlog/stories.yaml", "docs/prd.md"],
+    backlogMode: "stories_and_tasks",
+    memory: { global: [], project: ["workflow-notes", "execution-history"] },
+  },
+  "cost-optimizer": {
+    readPaths: ["docs/delivery-status.md", "docs/prd.md"],
+    backlogMode: "none",
+    memory: { global: ["workflow-notes"], project: ["technical-decisions"] },
+  },
+  "observability-agent": {
+    readPaths: ["docs/architecture.md", "docs/delivery-status.md"],
+    backlogMode: "none",
+    memory: { global: [], project: ["technical-decisions", "execution-history"] },
+  },
+  "release-manager": {
+    readPaths: ["backlog/tasks.yaml", "docs/prd.md", "docs/delivery-status.md"],
+    backlogMode: "none",
+    memory: { global: [], project: ["workflow-notes", "product-context"] },
+  },
+  "portfolio-strategist": {
+    readPaths: ["docs/prd.md", "docs/discovery.md", "docs/delivery-status.md"],
+    backlogMode: "none",
+    memory: { global: ["workflow-notes"], project: ["product-context", "business-rules"] },
+  },
 };
 
 export function mergeReadPaths(rule: AgentContextRule | undefined, fallback: string[] | undefined): string[] {

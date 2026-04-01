@@ -11,7 +11,7 @@ import {
 import { createGitService, hasLocalGitRepository } from "@aios-celx/git-integration";
 import { loadProjectConfig } from "@aios-celx/project-manager";
 import { readState, updateState } from "@aios-celx/state-manager";
-import { loadDefaultSoftwareDeliveryWorkflow } from "@aios-celx/workflow-engine";
+import { loadWorkflowForConfig } from "@aios-celx/workflow-engine";
 import { join } from "node:path";
 import { appendExecutionLogLine } from "./project-logs.js";
 
@@ -99,7 +99,7 @@ export async function runEngineerTask(options: {
   }
 
   const state = await readState(projectsRoot, projectId);
-  const workflow = await loadDefaultSoftwareDeliveryWorkflow();
+  const workflow = await loadWorkflowForConfig(config);
   const resolved = await resolveAgentContext({
     projectsRoot,
     projectId,

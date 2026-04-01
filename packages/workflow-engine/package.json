@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc && cp -r workflows dist/workflows",
+    "build": "tsc && rm -rf dist/workflows && mkdir -p dist/workflows && cp workflows/*.yaml dist/workflows/",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit"
   },
