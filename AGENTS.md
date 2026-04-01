@@ -19,10 +19,14 @@ Este ficheiro resume como trabalhar **no monorepo aios-celx** sem desalinhar o f
 - Os **agentes** do workflow (`requirements-analyst`, `engineer-task-runner`, etc.) são executados pelo **CLI** (`run`, `next`, `approve`), não são o modo Agent do Cursor.
 - O motor por defeito é **`mock-engine`**; a engine **`cursor`** em `packages/engine-adapters` é **stub** até existir integração real.
 
+## Catálogo de agentes (MVP, roadmap, testes)
+
+- **Versionado no Git:** **[docs/agentes/README.md](./docs/agentes/README.md)** — núcleo de 6 agentes, v2, v3, ligação ao [plano de implementação e testes MVP](./docs/agentes/plano-implementacao.md).
+
 ## Plano de execução (desenvolvimento do framework)
 
-- Ordem das etapas e checklists: **[docs/plano-execucao/README.md](./docs/plano-execucao/README.md)**.
-- Fluxo Cursor + aios (onboarding): **[docs/plano-execucao/00-guia-cursor-aios/README.md](./docs/plano-execucao/00-guia-cursor-aios/README.md)**.
+- Ordem das etapas e checklists: `docs/plano-execucao/README.md` (pode existir só em cópias locais; não está no Git por omissão).
+- Fluxo Cursor + aios: `docs/plano-execucao/00-guia-cursor-aios/` no mesmo caso.
 
 ## Verificação rápida
 

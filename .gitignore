@@ -8,7 +8,9 @@ dist/
 pnpm-debug.log*
 
 # Local planning / prompts (optional; not versioned)
-docs/
+docs/**
+!docs/agentes/
+!docs/agentes/**
 
 # Ecosystem runtime state (local)
 .aios/global-memory.json
