@@ -1,0 +1,31 @@
+---
+description: Monorepo aios-celx — CLI, projectId, projects/ e separação agentes aios vs Cursor
+alwaysApply: true
+---
+
+# aios-celx no Cursor
+
+## CLI
+
+- Corre **`pnpm exec aios`** a partir da **raiz** do monorepo (onde está `pnpm-workspace.yaml`).
+- Documentação completa de comandos e env: **README.md** na raiz.
+
+## Projetos geridos
+
+- Pastas sob **`projects/<projectId>/`**: `docs/`, `backlog/`, `.aios/` (`config.yaml`, `state.json`, logs, fila).
+- Sempre que o utilizador fale de um projeto gerido, pede ou assume um **`projectId`** explícito nos comandos: `--project <id>`.
+
+## Agentes
+
+- Os **ids de agente** do workflow (ex. `requirements-analyst`) são disparados pelo **CLI** (`aios run --agent …`), não confundir com o Agent mode do Cursor.
+- Engine útil por defeito: **`mock-engine`**. **`cursor`** / `claude-code` / `codex` em config são placeholders até integração em `packages/engine-adapters`.
+
+## Alterações ao framework
+
+- Para implementar o próprio aios-celx, segue a ordem em **docs/plano-execucao/README.md** e o `tasks.md` da etapa corrente.
+- Guia de trabalho diário (terminal + chat): **docs/plano-execucao/00-guia-cursor-aios/**.
+
+## Ficheiros de contexto para o assistente
+
+- **AGENTS.md** na raiz resume isto para agentes.
+- Preferir anexar ficheiros com `@` em vez de inventar estrutura de pastas.
