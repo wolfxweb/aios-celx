@@ -10,8 +10,10 @@ Visão de **papéis** desejados no framework (não confundir com pacotes `packag
 | `product-manager` | Discovery → backlog executável | Visão em trabalho priorizável |
 | `software-architect` | Estrutura técnica e contratos | Evitar execução desorganizada |
 | `delivery-manager` | Coordenação operacional | Fazer o projeto andar |
-| `engineer` | Execução de tasks | Task → entrega técnica (+ relatório) |
-| `qa-reviewer` | Validação pós-implementação | Impedir que trabalho frágil avance |
+| `engineer` | Execução de tasks | Task → entrega técnica (+ relatório) — **`aios run:task`** |
+| `qa-reviewer` | Validação pós-implementação | Impedir que trabalho frágil avance — **`aios run:qa`** |
+
+Os dois últimos aparecem no registry para I/O e `listAgents`, mas a execução real é pelos comandos indicados (`run --agent engineer|qa-reviewer` devolve mensagem a apontar para esses comandos).
 
 ## Camada v2 (recomendada, após MVP sólido)
 

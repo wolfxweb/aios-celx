@@ -29,6 +29,8 @@ Convensão futura desejada (por agente): pasta com `definition`, template de pro
 
 **Critério de saída:** revisão feita; ids estáveis; sem duplicação contraditória entre docs e `AgentDefinition`.
 
+**No código (Fase 0 + início da 1):** `registry.ts` inclui os 6 MVP com descrições alinhadas ao catálogo; `engineer` e `qa-reviewer` têm handlers que **orientam** para `run:task` / `run:qa` se alguém usar `run --agent` por engano. Mocks de `requirements-analyst`, `product-manager`, `software-architect` e `delivery-manager` foram enriquecidos; `delivery-manager` agrega backlog + fila + `getNextStep`.
+
 ### Contrato resumido MVP (I/O)
 
 | Agente | Entradas principais | Saídas principais |

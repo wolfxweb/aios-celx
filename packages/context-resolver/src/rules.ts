@@ -35,8 +35,8 @@ export const AGENT_CONTEXT_RULES: Record<string, AgentContextRule> = {
     memory: { global: [], project: ["technical-decisions", "integrations", "architecture"] },
   },
   "delivery-manager": {
-    readPaths: [],
-    backlogMode: "none",
+    readPaths: [".aios/queue.json"],
+    backlogMode: "full",
     memory: { global: ["workflow-notes"], project: ["execution-history", "workflow-notes"] },
   },
   engineer: {
