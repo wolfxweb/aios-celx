@@ -1,7 +1,10 @@
 import { writeMarkdown, writeYaml } from "@aios-celx/artifact-manager";
 import type { AgentResult } from "@aios-celx/shared";
 import { join } from "node:path";
-import type { AgentExecutionContext } from "../context.js";
+import { interpolateTemplate, loadPromptTemplate } from "../../agent-kit/load-prompt.js";
+import type { AgentExecutionContext } from "../../context.js";
+import { OUTPUT_PATHS } from "./output-schema.js";
+import { agentMission, agentRole } from "./definition.js";
 
 const epicsDoc = {
   epics: [
@@ -52,6 +55,28 @@ const tasksDoc = {
 export async function runProductManager(ctx: AgentExecutionContext): Promise<AgentResult> {
   const discovery = ctx.files["docs/discovery.md"] ?? "";
 
+  let promptAppendix = "";
+  try {
+    const tpl = await loadPromptTemplate(import.meta.url);
+    const filled = interpolateTemplate(tpl, {
+      agent_id: "product-manager",
+      role: agentRole,
+      mission: agentMission,
+      resolved_context: discovery.slice(0, 3000) + (discovery.length > 3000 ? "\n…" : ""),
+      output_contract: OUTPUT_PATHS.join(", "),
+    });
+    promptAppendix = `
+
+## Prompt template (reference — mock engine)
+
+\`\`\`
+${filled.slice(0, 3500)}${filled.length > 3500 ? "\n…(truncated)" : ""}
+\`\`\`
+`;
+  } catch {
+    promptAppendix = "";
+  }
+
   const prdBody = `# Product Requirements — ${ctx.projectId}
 
 ## Summary
@@ -98,7 +123,7 @@ ${discovery.split("\n").slice(0, 12).join("\n")}
 | Now | Fundação: PRD + backlog + alinhamento com discovery |
 | Next | Primeira entrega técnica (tasks \`in_progress\` → \`done\`) |
 | Later | Integrações e hardening conforme architect |
-
+${promptAppendix}
 _Mock — **product-manager** — ${new Date().toISOString()}_
 `;
 

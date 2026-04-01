@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {
+  canRunWithoutCurrentAgentMatch,
   executeAgentWithEngine,
   executeQueueItem,
   resolveExecutionConfig,

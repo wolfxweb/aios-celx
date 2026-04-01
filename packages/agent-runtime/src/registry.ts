@@ -1,71 +1,77 @@
 import type { AgentDefinition } from "@aios-celx/shared";
 import { runEngineerRouteHint, runQaRouteHint } from "./agents/cli-route-hints.js";
-import { runDeliveryManager } from "./agents/delivery-manager.js";
-import { runProductManager } from "./agents/product-manager.js";
-import { runRequirementsAnalyst } from "./agents/requirements-analyst.js";
-import { runSoftwareArchitect } from "./agents/software-architect.js";
+import { agentDefinition as costOptimizerDef } from "./agents/cost-optimizer/definition.js";
+import { runCostOptimizer } from "./agents/cost-optimizer/run.js";
+import { agentDefinition as dbDesignerDef } from "./agents/db-designer/definition.js";
+import { runDbDesigner } from "./agents/db-designer/run.js";
+import { agentDefinition as deliveryManagerDef } from "./agents/delivery-manager/definition.js";
+import { runDeliveryManager } from "./agents/delivery-manager/run.js";
+import { agentDefinition as engineerDef } from "./agents/engineer/definition.js";
+import { agentDefinition as integrationSpecialistDef } from "./agents/integration-specialist/definition.js";
+import { runIntegrationSpecialist } from "./agents/integration-specialist/run.js";
+import { agentDefinition as observabilityAgentDef } from "./agents/observability-agent/definition.js";
+import { runObservabilityAgent } from "./agents/observability-agent/run.js";
+import { agentDefinition as portfolioStrategistDef } from "./agents/portfolio-strategist/definition.js";
+import { runPortfolioStrategist } from "./agents/portfolio-strategist/run.js";
+import { agentDefinition as productManagerDef } from "./agents/product-manager/definition.js";
+import { runProductManager } from "./agents/product-manager/run.js";
+import { agentDefinition as qaReviewerDef } from "./agents/qa-reviewer/definition.js";
+import { agentDefinition as refactorGuardianDef } from "./agents/refactor-guardian/definition.js";
+import { runRefactorGuardian } from "./agents/refactor-guardian/run.js";
+import { agentDefinition as releaseManagerDef } from "./agents/release-manager/definition.js";
+import { runReleaseManager } from "./agents/release-manager/run.js";
+import { agentDefinition as requirementsAnalystDef } from "./agents/requirements-analyst/definition.js";
+import { runRequirementsAnalyst } from "./agents/requirements-analyst/run.js";
+import { agentDefinition as securityReviewerDef } from "./agents/security-reviewer/definition.js";
+import { runSecurityReviewer } from "./agents/security-reviewer/run.js";
+import { agentDefinition as softwareArchitectDef } from "./agents/software-architect/definition.js";
+import { runSoftwareArchitect } from "./agents/software-architect/run.js";
+import { agentDefinition as sprintPlannerDef } from "./agents/sprint-planner/definition.js";
+import { runSprintPlanner } from "./agents/sprint-planner/run.js";
+import { agentDefinition as technicalWriterDef } from "./agents/technical-writer/definition.js";
+import { runTechnicalWriter } from "./agents/technical-writer/run.js";
+import { agentDefinition as uxReviewerDef } from "./agents/ux-reviewer/definition.js";
+import { runUxReviewer } from "./agents/ux-reviewer/run.js";
 import type { AgentHandler } from "./types-agent.js";
 
+/** Agents that may run via `aios run --agent` without matching `state.currentAgent` (advisory / cross-cutting). */
+const ADVISORY_AGENT_IDS = new Set<string>([
+  "delivery-manager",
+  "technical-writer",
+  "refactor-guardian",
+  "integration-specialist",
+  "db-designer",
+  "security-reviewer",
+  "ux-reviewer",
+  "sprint-planner",
+  "cost-optimizer",
+  "observability-agent",
+  "release-manager",
+  "portfolio-strategist",
+]);
+
+export function canRunWithoutCurrentAgentMatch(agentId: string): boolean {
+  return ADVISORY_AGENT_IDS.has(agentId);
+}
+
 const definitions: Record<string, AgentDefinition> = {
-  "requirements-analyst": {
-    id: "requirements-analyst",
-    description:
-      "MVP — Transform raw intent into structured discovery; reduce ambiguity before PRD. Reads vision (+ memory via context). Outputs discovery.",
-    reads: ["docs/vision.md"],
-    writes: ["docs/discovery.md"],
-  },
-  "product-manager": {
-    id: "product-manager",
-    description:
-      "MVP — Turn discovery into an executable product backlog: PRD, epics, stories, tasks, acceptance criteria, initial roadmap.",
-    reads: ["docs/discovery.md"],
-    writes: ["docs/prd.md", "backlog/epics.yaml", "backlog/stories.yaml", "backlog/tasks.yaml"],
-  },
-  "software-architect": {
-    id: "software-architect",
-    description:
-      "MVP — Technical structure for the managed product: architecture, modules, boundaries, integrations, API contracts, stack/patterns.",
-    reads: ["docs/discovery.md", "docs/prd.md", "backlog/stories.yaml"],
-    writes: ["docs/architecture.md", "docs/api-contracts.md"],
-  },
-  "delivery-manager": {
-    id: "delivery-manager",
-    description:
-      "MVP — Operational coordination: state, workflow step, gates, queue, backlog health, blockers, recommended next commands.",
-    reads: [
-      ".aios/state.json",
-      ".aios/queue.json",
-      "backlog/tasks.yaml",
-      "backlog/stories.yaml",
-      "backlog/epics.yaml",
-    ],
-    writes: ["docs/delivery-status.md", "docs/delivery-summary.md"],
-  },
-  engineer: {
-    id: "engineer",
-    description:
-      "MVP — Executes technical work per task; use `aios run:task` (not `run --agent`). Outputs implementation report + task status.",
-    reads: [
-      "backlog/tasks.yaml",
-      "backlog/stories.yaml",
-      "docs/architecture.md",
-      "docs/api-contracts.md",
-    ],
-    writes: ["docs/execution/*-implementation.md", "backlog/tasks.yaml"],
-  },
-  "qa-reviewer": {
-    id: "qa-reviewer",
-    description:
-      "MVP — Validates task delivery vs acceptance and architecture; use `aios run:qa` (not `run --agent`). Outputs QA reports + task QA fields.",
-    reads: [
-      "backlog/tasks.yaml",
-      "backlog/stories.yaml",
-      "docs/architecture.md",
-      "docs/api-contracts.md",
-      "docs/execution/*-implementation.md",
-    ],
-    writes: ["qa/reports/*-qa-report.md", "qa/reports/*-qa-report.json", "backlog/tasks.yaml"],
-  },
+  "requirements-analyst": requirementsAnalystDef,
+  "product-manager": productManagerDef,
+  "software-architect": softwareArchitectDef,
+  "delivery-manager": deliveryManagerDef,
+  engineer: engineerDef,
+  "qa-reviewer": qaReviewerDef,
+  "technical-writer": technicalWriterDef,
+  "refactor-guardian": refactorGuardianDef,
+  "integration-specialist": integrationSpecialistDef,
+  "db-designer": dbDesignerDef,
+  "security-reviewer": securityReviewerDef,
+  "ux-reviewer": uxReviewerDef,
+  "sprint-planner": sprintPlannerDef,
+  "cost-optimizer": costOptimizerDef,
+  "observability-agent": observabilityAgentDef,
+  "release-manager": releaseManagerDef,
+  "portfolio-strategist": portfolioStrategistDef,
 };
 
 const handlers: Record<string, AgentHandler> = {
@@ -75,6 +81,17 @@ const handlers: Record<string, AgentHandler> = {
   "delivery-manager": runDeliveryManager,
   engineer: runEngineerRouteHint,
   "qa-reviewer": runQaRouteHint,
+  "technical-writer": runTechnicalWriter,
+  "refactor-guardian": runRefactorGuardian,
+  "integration-specialist": runIntegrationSpecialist,
+  "db-designer": runDbDesigner,
+  "security-reviewer": runSecurityReviewer,
+  "ux-reviewer": runUxReviewer,
+  "sprint-planner": runSprintPlanner,
+  "cost-optimizer": runCostOptimizer,
+  "observability-agent": runObservabilityAgent,
+  "release-manager": runReleaseManager,
+  "portfolio-strategist": runPortfolioStrategist,
 };
 
 export function listAgents(): AgentDefinition[] {

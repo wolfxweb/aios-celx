@@ -10,6 +10,7 @@ export { runEngineerTask, type EngineerTaskResult } from "./engineer-task-runner
 export { runQaTask, type QaTaskResult } from "./qa-task-runner.js";
 export { runStoryExecution, type StoryExecutionResult, type StoryTaskStepResult } from "./story-execution.js";
 export {
+  canRunWithoutCurrentAgentMatch,
   getAgentDefinition,
   getAgentHandler,
   listAgents,

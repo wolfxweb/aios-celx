@@ -6,12 +6,12 @@ Este documento alinha o **catálogo de agentes** (MVP, v2, v3) ao **estado atual
 
 | Agente | Onde vive hoje | Comando / notas |
 |--------|----------------|-----------------|
-| `requirements-analyst` | `packages/agent-runtime/src/agents/requirements-analyst.ts` | `aios run --agent requirements-analyst` |
-| `product-manager` | `agents/product-manager.ts` | idem |
-| `software-architect` | `agents/software-architect.ts` | idem |
-| `delivery-manager` | `agents/delivery-manager.ts` | idem |
-| `engineer` | `packages/agent-runtime/src/engineer-task-runner.ts` | `aios run:task --project <id> --task <TASK>` |
-| `qa-reviewer` | `packages/agent-runtime/src/qa-task-runner.ts` | `aios run:qa --project <id> --task <TASK>`; metadados em `registry.ts` (sem handler `run --agent`) |
+| `requirements-analyst` | `packages/agent-runtime/src/agents/requirements-analyst/` (`definition`, `prompt-template.md`, `output-schema.ts`, `run.ts`) | `aios run --agent requirements-analyst` |
+| `product-manager` | `agents/product-manager/` | idem |
+| `software-architect` | `agents/software-architect/` | idem |
+| `delivery-manager` | `agents/delivery-manager/` | idem |
+| `engineer` | `agents/engineer/` (contrato) + `engineer-task-runner.ts` (execução) | `aios run:task --project <id> --task <TASK>` |
+| `qa-reviewer` | `agents/qa-reviewer/` (contrato) + `qa-task-runner.ts` | `aios run:qa --project <id> --task <TASK>`; `run --agent` → hint no CLI |
 
 Convensão futura desejada (por agente): pasta com `definition`, template de prompt e schema de saída onde fizer sentido — ver discussão de produto; **este plano** não obriga refator imediata, mas recomenda **um agente piloto** (p.ex. `requirements-analyst`) quando existir engine LLM real.
 
@@ -29,7 +29,7 @@ Convensão futura desejada (por agente): pasta com `definition`, template de pro
 
 **Critério de saída:** revisão feita; ids estáveis; sem duplicação contraditória entre docs e `AgentDefinition`.
 
-**No código (Fase 0 + início da 1):** `registry.ts` inclui os 6 MVP com descrições alinhadas ao catálogo; `engineer` e `qa-reviewer` têm handlers que **orientam** para `run:task` / `run:qa` se alguém usar `run --agent` por engano. Mocks de `requirements-analyst`, `product-manager`, `software-architect` e `delivery-manager` foram enriquecidos; `delivery-manager` agrega backlog + fila + `getNextStep`.
+**No código (Fase 0 + início da 1):** `registry.ts` importa `definition.ts` de cada pasta em `src/agents/<id>/`; cada agente tem `prompt-template.md`, `output-schema.ts` e `run.ts` (ver `src/agents/README.md`). `engineer` e `qa-reviewer` têm handlers que **orientam** para `run:task` / `run:qa` se alguém usar `run --agent` por engano. `delivery-manager` agrega backlog + fila + `getNextStep`.
 
 ### Contrato resumido MVP (I/O)
 

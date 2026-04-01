@@ -1,7 +1,10 @@
 import { writeMarkdown } from "@aios-celx/artifact-manager";
 import type { AgentResult } from "@aios-celx/shared";
 import { join } from "node:path";
-import type { AgentExecutionContext } from "../context.js";
+import { interpolateTemplate, loadPromptTemplate } from "../../agent-kit/load-prompt.js";
+import type { AgentExecutionContext } from "../../context.js";
+import { OUTPUT_PATHS } from "./output-schema.js";
+import { agentMission, agentRole } from "./definition.js";
 
 export async function runRequirementsAnalyst(ctx: AgentExecutionContext): Promise<AgentResult> {
   const vision = ctx.files["docs/vision.md"] ?? "(missing vision — add `docs/vision.md` before refining discovery)";
@@ -10,7 +13,38 @@ export async function runRequirementsAnalyst(ctx: AgentExecutionContext): Promis
       ? `${ctx.memory.global.length} global + ${ctx.memory.project.length} project memory entries were available to context (see memória no runtime).`
       : "No memory slices in context for this run (normal for early projects).";
 
-  const outPath = "docs/discovery.md";
+  const resolvedContext = [
+    `vision excerpt (${Math.min(vision.split("\n").length, 18)} lines)`,
+    memoryHint,
+  ].join("\n");
+
+  const outputContract = `Um ficheiro Markdown em ${OUTPUT_PATHS[0]} com secções obrigatórias alinhadas ao catálogo MVP (problema, utilizadores, escopo, regras, riscos).`;
+
+  let promptRefSection = "";
+  try {
+    const tpl = await loadPromptTemplate(import.meta.url);
+    const filled = interpolateTemplate(tpl, {
+      agent_id: "requirements-analyst",
+      role: agentRole,
+      mission: agentMission,
+      resolved_context: resolvedContext,
+      output_contract: outputContract,
+    });
+    promptRefSection = `
+
+## Prompt template (reference — mock engine)
+
+The following block records the **interpolated** system prompt template for traceability (future LLM engines will use this text directly):
+
+\`\`\`
+${filled.slice(0, 4000)}${filled.length > 4000 ? "\n…(truncated)" : ""}
+\`\`\`
+`;
+  } catch {
+    promptRefSection = "\n_(prompt-template.md not loaded — optional in dev)_\n";
+  }
+
+  const outPath = OUTPUT_PATHS[0];
   const body = `# Discovery — ${ctx.projectId}
 
 ## Mandate
@@ -77,7 +111,7 @@ _Context / memory:_ ${memoryHint}
 1. What is the measurable outcome for v1 (metric + timeframe)?
 2. Which integrations are mandatory vs optional?
 3. Who approves scope changes after discovery is “frozen”?
-
+${promptRefSection}
 _Mock pipeline — **requirements-analyst** — ${new Date().toISOString()}_
 `;
 

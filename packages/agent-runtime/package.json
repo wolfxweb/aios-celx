@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node ./scripts/copy-agent-md.mjs",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit"
   },

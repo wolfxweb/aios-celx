@@ -1,12 +1,37 @@
 import { writeMarkdown } from "@aios-celx/artifact-manager";
 import type { AgentResult } from "@aios-celx/shared";
 import { join } from "node:path";
-import type { AgentExecutionContext } from "../context.js";
+import { interpolateTemplate, loadPromptTemplate } from "../../agent-kit/load-prompt.js";
+import type { AgentExecutionContext } from "../../context.js";
+import { OUTPUT_PATHS } from "./output-schema.js";
+import { agentMission, agentRole } from "./definition.js";
 
 export async function runSoftwareArchitect(ctx: AgentExecutionContext): Promise<AgentResult> {
   const discovery = ctx.files["docs/discovery.md"] ?? "";
   const prd = ctx.files["docs/prd.md"] ?? "";
   const stories = ctx.files["backlog/stories.yaml"] ?? "";
+
+  let promptAppendix = "";
+  try {
+    const tpl = await loadPromptTemplate(import.meta.url);
+    const filled = interpolateTemplate(tpl, {
+      agent_id: "software-architect",
+      role: agentRole,
+      mission: agentMission,
+      resolved_context: [discovery.slice(0, 1200), prd.slice(0, 1200), stories.slice(0, 800)].join("\n---\n"),
+      output_contract: OUTPUT_PATHS.join(", "),
+    });
+    promptAppendix = `
+
+## Prompt template (reference — mock engine)
+
+\`\`\`
+${filled.slice(0, 3500)}${filled.length > 3500 ? "\n…(truncated)" : ""}
+\`\`\`
+`;
+  } catch {
+    promptAppendix = "";
+  }
 
   const archBody = `# Architecture — ${ctx.projectId}
 
@@ -62,7 +87,7 @@ ${prd.split("\n").slice(0, 10).join("\n")}
 
 - Estilo de commits, branches (se Git activo no projecto).
 - Erros, idempotência, paginação em APIs públicas.
-
+${promptAppendix}
 _Mock — **software-architect** — ${new Date().toISOString()}_
 `;
 
@@ -99,8 +124,8 @@ ${stories.split("\n").slice(0, 16).join("\n")}
 _Mock — **software-architect** — ${new Date().toISOString()}_
 `;
 
-  const archPath = "docs/architecture.md";
-  const apiPath = "docs/api-contracts.md";
+  const archPath = OUTPUT_PATHS[0];
+  const apiPath = OUTPUT_PATHS[1];
   await writeMarkdown(join(ctx.projectRoot, archPath), archBody);
   await writeMarkdown(join(ctx.projectRoot, apiPath), apiBody);
 
