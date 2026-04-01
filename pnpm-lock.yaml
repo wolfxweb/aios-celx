@@ -66,6 +66,9 @@ importers:
       '@aios-celx/autonomy-control':
         specifier: workspace:*
         version: link:../../packages/autonomy-control
+      '@aios-celx/blueprints':
+        specifier: workspace:*
+        version: link:../../packages/blueprints
       '@aios-celx/engine-adapters':
         specifier: workspace:*
         version: link:../../packages/engine-adapters
