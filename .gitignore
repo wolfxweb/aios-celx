@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.turbo/
+*.log
+.DS_Store
+.env
+.env.*
+pnpm-debug.log*
+
+# Local planning / prompts (optional; not versioned)
+docs/
+
+# Ecosystem runtime state (local)
+.aios/global-memory.json
+
+# Managed project trees (keep directory with .gitkeep only)
+projects/*
+!projects/.gitkeep

@@ -1,0 +1,8 @@
+# User stories — {{projectId}}
+
+stories:
+  - id: STORY-1
+    epicId: EPIC-1
+    title: Scaffold story
+    acceptance: []
+    status: draft

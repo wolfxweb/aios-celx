@@ -1,0 +1,7 @@
+# Epics — {{projectId}}
+
+epics:
+  - id: EPIC-1
+    title: Scaffold epic
+    goal: Replace with real epics after discovery.
+    status: draft

@@ -1,0 +1,14 @@
+version: 1
+updatedAt: 2026-04-01T00:03:35.563Z
+portfolio:
+  id: default
+  name: Default portfolio
+  description: Executive view over managed projects (Bloco 5.3).
+  projects:
+    - bloco44-smoke
+    - e2e-demo
+    - git-smoke
+  priorities: []
+  groups: {}
+  tags: []
+

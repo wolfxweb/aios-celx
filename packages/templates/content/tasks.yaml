@@ -1,0 +1,36 @@
+# Engineering tasks — {{projectId}}
+
+tasks:
+  - id: TASK-1
+    storyId: STORY-1
+    title: Scaffold task (use with aios run:task after architecture exists)
+    description: Validates backlog + engineer mock pipeline.
+    type: implementation
+    status: todo
+    files:
+      - README.md
+    acceptanceCriteria:
+      - Task can be loaded by backlog-manager
+    notes: Template scaffold — Bloco 4.2.
+
+  - id: TASK-2
+    storyId: STORY-1
+    title: Second task (story run smoke)
+    description: Used with `aios run:story --story STORY-1`.
+    type: implementation
+    status: todo
+    files: []
+    acceptanceCriteria:
+      - Story execution lists multiple tasks
+    notes: Optional — Bloco 4.4.
+
+  - id: TASK-3
+    storyId: STORY-1
+    title: Third task (story run smoke)
+    description: Runs after TASK-2 in lexicographic order.
+    type: implementation
+    status: todo
+    files: []
+    acceptanceCriteria:
+      - Ordering is predictable
+    notes: Optional — Bloco 4.4.

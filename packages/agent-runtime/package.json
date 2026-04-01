@@ -1,0 +1,36 @@
+{
+  "name": "@aios-celx/agent-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aios-celx/artifact-manager": "workspace:*",
+    "@aios-celx/backlog-manager": "workspace:*",
+    "@aios-celx/context-resolver": "workspace:*",
+    "@aios-celx/execution-queue": "workspace:*",
+    "@aios-celx/engine-adapters": "workspace:*",
+    "@aios-celx/git-integration": "workspace:*",
+    "@aios-celx/memory-system": "workspace:*",
+    "@aios-celx/project-manager": "workspace:*",
+    "@aios-celx/shared": "workspace:*",
+    "@aios-celx/state-manager": "workspace:*",
+    "@aios-celx/workflow-engine": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@aios-celx/scheduler",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "selftest": "node dist/parallel-plan.selftest.js"
+  },
+  "dependencies": {
+    "@aios-celx/agent-runtime": "workspace:*",
+    "@aios-celx/autonomy-control": "workspace:*",
+    "@aios-celx/execution-queue": "workspace:*",
+    "@aios-celx/project-manager": "workspace:*",
+    "@aios-celx/shared": "workspace:*",
+    "@aios-celx/state-manager": "workspace:*",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.3"
+  }
+}

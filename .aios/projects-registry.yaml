@@ -1,0 +1,76 @@
+version: 1
+updatedAt: 2026-04-01T01:10:40.886Z
+projects:
+  - id: bloc3-smoke
+    name: SaaS webapp
+    path: projects/bloc3-smoke
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:35:52.655Z
+    updatedAt: 2026-04-01T00:00:14.194Z
+    priority: medium
+    tags: []
+  - id: bloco44-smoke
+    name: SaaS webapp
+    path: projects/bloco44-smoke
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:49:47.150Z
+    updatedAt: 2026-04-01T00:00:14.197Z
+    priority: medium
+    tags: []
+  - id: e2e-demo
+    name: SaaS webapp
+    path: projects/e2e-demo
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T22:46:26.231Z
+    updatedAt: 2026-04-01T00:00:14.198Z
+    priority: medium
+    tags: []
+  - id: eng-b42
+    name: SaaS webapp
+    path: projects/eng-b42
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:44:37.186Z
+    updatedAt: 2026-04-01T00:00:14.199Z
+    priority: medium
+    tags: []
+  - id: eng-b43
+    name: SaaS webapp
+    path: projects/eng-b43
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:45:28.671Z
+    updatedAt: 2026-04-01T00:00:14.199Z
+    priority: medium
+    tags: []
+  - id: git-smoke
+    name: SaaS webapp
+    path: projects/git-smoke
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:40:43.690Z
+    updatedAt: 2026-04-01T00:00:14.200Z
+    priority: medium
+    tags: []
+  - id: git-smoke2
+    name: SaaS webapp
+    path: projects/git-smoke2
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-03-31T23:41:16.900Z
+    updatedAt: 2026-04-01T00:00:14.201Z
+    priority: medium
+    tags: []
+  - id: appCelx
+    name: SaaS webapp
+    path: projects/appCelx
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-01T01:10:40.869Z
+    updatedAt: 2026-04-01T01:10:40.882Z
+    priority: medium
+    tags: []
+

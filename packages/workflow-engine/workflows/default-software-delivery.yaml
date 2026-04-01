@@ -1,0 +1,37 @@
+id: default-software-delivery
+name: Default software delivery
+description: Discovery → planning → architecture (mock agents, gates between stages).
+
+steps:
+  - id: discovery
+    stage: discovery
+    agent: requirements-analyst
+    gate: discovery_complete
+    inputs:
+      - docs/vision.md
+    outputs:
+      - docs/discovery.md
+
+  - id: planning
+    stage: planning
+    agent: product-manager
+    gate: planning_complete
+    inputs:
+      - docs/discovery.md
+    outputs:
+      - docs/prd.md
+      - backlog/epics.yaml
+      - backlog/stories.yaml
+      - backlog/tasks.yaml
+
+  - id: architecture
+    stage: architecture
+    agent: software-architect
+    gate: architecture_complete
+    inputs:
+      - docs/discovery.md
+      - docs/prd.md
+      - backlog/stories.yaml
+    outputs:
+      - docs/architecture.md
+      - docs/api-contracts.md
