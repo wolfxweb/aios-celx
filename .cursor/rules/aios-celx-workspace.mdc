@@ -18,6 +18,7 @@ alwaysApply: true
 ## Agentes
 
 - Os **ids de agente** do workflow (ex. `requirements-analyst`) são disparados pelo **CLI** (`aios run --agent …`), não confundir com o Agent mode do Cursor.
+- Atalhos no chat: comandos **`/aios-*`** em `.cursor/commands/` (ex. `/aios-run-agent`, `/aios-task-qa`) — o assistente deve correr `pnpm exec aios` na **raiz** do monorepo conforme o roteiro de cada ficheiro.
 - Engine útil por defeito: **`mock-engine`**. **`cursor`** / `claude-code` / `codex` em config são placeholders até integração em `packages/engine-adapters`.
 
 ## Alterações ao framework

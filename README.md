@@ -3,7 +3,7 @@
 Framework em Node.js + TypeScript para orquestrar o desenvolvimento de software com **agentes**, **workflows** em YAML, **backlog** estruturado e **automação** governada (fila, scheduler, autonomia). 
 Este repositório é o monorepo do CLI (`aios`), pacotes internos, API HTTP opcional e dashboard opcional.
 
-Quem usa **Cursor** ou outro assistente sobre o repo: **[AGENTS.md](./AGENTS.md)** e o guia [docs/plano-execucao/00-guia-cursor-aios](./docs/plano-execucao/00-guia-cursor-aios/README.md).
+Quem usa **Cursor**: **[AGENTS.md](./AGENTS.md)**, o guia [docs/plano-execucao/00-guia-cursor-aios](./docs/plano-execucao/00-guia-cursor-aios/README.md) e os **comandos `/`** em [`.cursor/commands/`](./.cursor/commands/) (ex. `/aios-next`, `/aios-run-agent`, `/aios-task-qa`). A pasta **`.cursor/`** (`rules` + `commands`) está **versionada no Git**: após clonar ou fazer pull, os atalhos `/aios-*` aparecem no chat sem configuração extra.
 
 ## Requisitos e instalação
 

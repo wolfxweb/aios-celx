@@ -16,7 +16,8 @@ Este ficheiro resume como trabalhar **no monorepo aios-celx** sem desalinhar o f
 
 ## Agentes aios vs assistente do IDE
 
-- Os **agentes** do workflow (`requirements-analyst`, `engineer-task-runner`, etc.) são executados pelo **CLI** (`run`, `next`, `approve`), não são o modo Agent do Cursor.
+- Os **agentes** do workflow (`requirements-analyst`, `engineer`, etc.) são executados pelo **CLI** (`run`, `next`, `approve`, `run:task`, `run:qa`), não são o modo Agent do Cursor em si.
+- No **Cursor**, comandos personalizados sob **`.cursor/commands/`** (ex.: `/aios-next`, `/aios-run-agent`, `/aios-task-qa`) injetam um roteiro para o assistente **correr `pnpm exec aios …` no terminal** e interpretar o resultado. Ver [docs/plano-execucao/00-guia-cursor-aios/README.md](./docs/plano-execucao/00-guia-cursor-aios/README.md) — secção «Comandos `/` do Cursor».
 - O motor por defeito é **`mock-engine`**; a engine **`cursor`** em `packages/engine-adapters` é **stub** até existir integração real.
 
 ## Catálogo de agentes (MVP, roadmap, testes)
