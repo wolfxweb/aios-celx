@@ -1,5 +1,5 @@
 version: 1
-updatedAt: 2026-04-01T01:10:40.886Z
+updatedAt: 2026-04-01T23:04:33.794Z
 projects:
   - id: bloc3-smoke
     name: SaaS webapp
@@ -71,6 +71,33 @@ projects:
     status: active
     createdAt: 2026-04-01T01:10:40.869Z
     updatedAt: 2026-04-01T01:10:40.882Z
+    priority: medium
+    tags: []
+  - id: aios-institutional-site
+    name: SaaS webapp
+    path: projects/aios-institutional-site
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-01T22:08:32.647Z
+    updatedAt: 2026-04-01T22:08:32.711Z
+    priority: medium
+    tags: []
+  - id: wolfx
+    name: SaaS webapp
+    path: projects/wolfx
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-01T22:41:23.452Z
+    updatedAt: 2026-04-01T22:41:23.492Z
+    priority: medium
+    tags: []
+  - id: assistencia-tickets
+    name: SaaS webapp
+    path: projects/assistencia-tickets
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-01T23:04:33.723Z
+    updatedAt: 2026-04-01T23:04:33.778Z
     priority: medium
     tags: []
 

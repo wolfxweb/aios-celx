@@ -1,3 +1,5 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "projects/aios-institutional-site"
+  - "projects/wolfx"
