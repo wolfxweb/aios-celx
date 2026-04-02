@@ -3,6 +3,10 @@
 Framework em Node.js + TypeScript para orquestrar o desenvolvimento de software com **agentes**, **workflows** em YAML, **backlog** estruturado e **automação** governada (fila, scheduler, autonomia). 
 Este repositório é o monorepo do CLI (`aios`), pacotes internos, API HTTP opcional e dashboard opcional.
 
+## Contribuir
+
+Licença: **[LICENSE](./LICENSE)** (MIT). Como participar: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Código de conduta: **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)**. Pull requests usam o [template em `.github/`](./.github/pull_request_template.md); issues têm [templates](./.github/ISSUE_TEMPLATE/).
+
 Quem usa **Cursor**: **[AGENTS.md](./AGENTS.md)**, o guia [docs/plano-execucao/00-guia-cursor-aios](./docs/plano-execucao/00-guia-cursor-aios/README.md) e os **comandos `/`** em [`.cursor/commands/`](./.cursor/commands/). A pasta **`.cursor/`** (`rules` + `commands`) está **versionada no Git**: após clonar ou fazer pull e abrir a **raiz do monorepo** como pasta do workspace no Cursor, os atalhos abaixo aparecem ao escrever **`/`** no chat — sem configuração extra.
 
 | Comando | Uso |
@@ -30,57 +34,7 @@ pnpm lint
 - **Pasta de projetos geridos:** por omissão **`<raiz do monorepo>/projects`** (a raiz deteta-se a partir do cwd, p.ex. via `pnpm-workspace.yaml`). Sobrescreva com **`AIOS_PROJECTS_ROOT`** (absoluto ou relativo ao processo) se precisar de outro sítio.
 - **Raiz do monorepo em ferramentas externas:** opcional **`AIOS_CELX_ROOT`** ou **`AIOS_MONOREPO_ROOT`** quando o processo não corre de dentro da árvore do repo.
 
-## Projeto de referência: Assistência Tickets (executável)
-
-O monorepo inclui um **produto web de exemplo** — sistema de **tickets de assistência técnica** (Laravel + SQLite) — usado como **projeto default** para acompanhar o workflow aios (documentação, backlog, agentes).
-
-| | |
-|---|---|
-| **ID do projeto (`--project`)** | `assistencia-tickets` |
-| **Pasta do projeto gerido** | [`projects/assistencia-tickets/`](projects/assistencia-tickets/) (`docs/`, `backlog/`, `.aios/`) |
-| **Código da aplicação** | [`projects/assistencia-tickets/web/`](projects/assistencia-tickets/web/) |
-
-### 1. Executar a aplicação web (recomendado para ver o sistema)
-
-Requisitos: **PHP 8.2+**, **Composer 2**, extensões habituais do Laravel (incl. `pdo_sqlite`).
-
-```bash
-cd projects/assistencia-tickets/web
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite
-php artisan migrate --seed
-php artisan serve
-```
-
-Abre no browser **http://127.0.0.1:8000** (ou a URL que o `serve` indicar).
-
-- **`/`** — página inicial (visitante) com funcionalidades e contexto aios-celx.
-- **`/login`** — mesmo login para **staff** e **cliente**; após entrar, o destino depende do perfil (dashboard interno ou portal do cliente).
-
-Contas criadas pelo seed (palavra-passe em todas: **`password`**):
-
-| Perfil | E-mail |
-|--------|--------|
-| Administrador | `admin@example.com` |
-| Técnico | `tech@example.com` |
-| Cliente (portal) | `cliente@example.com` |
-
-Detalhes de rotas (API, portal, SLA, testes): **[projects/assistencia-tickets/web/README.md](projects/assistencia-tickets/web/README.md)**.
-
-### 2. Orquestrar o mesmo projeto com o CLI `aios`
-
-O estado do workflow, backlog e agentes **não** substituem a app Laravel: são complementares. Correr **`pnpm exec aios`** na **raiz do monorepo** (pasta onde está `pnpm-workspace.yaml`):
-
-```bash
-pnpm install
-pnpm build
-pnpm exec aios status --project assistencia-tickets
-pnpm exec aios next --project assistencia-tickets
-```
-
-Outros comandos úteis: `run --agent …`, `approve`, `run:task --task …` (ver secção **Uso (CLI)** abaixo). Os ficheiros do projeto gerido estão em `projects/assistencia-tickets/.aios/` e em `docs/` / `backlog/`.
+Este README centra-se no **framework e no CLI**; um **projecto de exemplo runnable** (Assistência Tickets) está descrito **no final** — secção [Projeto de exemplo (referência)](#projeto-de-exemplo-referência-assistência-tickets).
 
 ## Configuração
 
@@ -245,3 +199,59 @@ A secção **`autonomy`** em `config.yaml` controla se o scheduler pode correr t
 ### Paralelismo na fila (opcional)
 
 Com **`scheduler:run --max-concurrent 2`** (ou o mesmo campo no `POST` da API), dois itens só correm em paralelo se tiverem **stories** distintas e **`metadata.touchPaths`** declarados sem sobreposição; caso contrário o plano fica sequencial. Ver **[packages/scheduler/README.md](packages/scheduler/README.md)**.
+
+---
+
+## Projeto de exemplo (referência): Assistência Tickets
+
+Secção **opcional** para quem quer ver um **produto web concreto** gerido pelo workflow aios (documentação, backlog, agentes) — **não** é o foco principal do monorepo; o foco é o **framework** em Node.js + TypeScript e o CLI `aios` (secções acima).
+
+O exemplo é um sistema de **tickets de assistência técnica** (Laravel + SQLite).
+
+| | |
+|---|---|
+| **ID do projeto (`--project`)** | `assistencia-tickets` |
+| **Pasta do projeto gerido** | [`projects/assistencia-tickets/`](projects/assistencia-tickets/) (`docs/`, `backlog/`, `.aios/`) |
+| **Código da aplicação** | [`projects/assistencia-tickets/web/`](projects/assistencia-tickets/web/) |
+
+### Executar a aplicação web de exemplo
+
+Requisitos: **PHP 8.2+**, **Composer 2**, extensões habituais do Laravel (incl. `pdo_sqlite`).
+
+```bash
+cd projects/assistencia-tickets/web
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate --seed
+php artisan serve
+```
+
+Abre no browser **http://127.0.0.1:8000** (ou a URL que o `serve` indicar).
+
+- **`/`** — página inicial (visitante) com foco no **framework** e, em seguida, o que esta app demonstra.
+- **`/login`** — mesmo login para **staff** e **cliente**; após entrar, o destino depende do perfil (dashboard interno ou portal do cliente).
+
+Contas criadas pelo seed (palavra-passe em todas: **`password`**):
+
+| Perfil | E-mail |
+|--------|--------|
+| Administrador | `admin@example.com` |
+| Técnico | `tech@example.com` |
+| Cliente (portal) | `cliente@example.com` |
+
+Mais pormenores: **[projects/assistencia-tickets/web/README.md](projects/assistencia-tickets/web/README.md)**.
+
+### Orquestrar este exemplo com o CLI `aios`
+
+Na **raiz do monorepo** (`pnpm-workspace.yaml`):
+
+```bash
+pnpm install
+pnpm build
+pnpm exec aios status --project assistencia-tickets
+pnpm exec aios next --project assistencia-tickets
+```
+
+Workflow e backlog **complementam** a app Laravel; comandos gerais: secção **Uso (CLI)**. Ficheiros do estado: `projects/assistencia-tickets/.aios/`, `docs/`, `backlog/`.

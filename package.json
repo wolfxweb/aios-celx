@@ -1,6 +1,7 @@
 {
   "name": "aios-celx",
   "private": true,
+  "license": "MIT",
   "description": "Framework Node.js + TypeScript para orquestração de desenvolvimento com agentes",
   "scripts": {
     "build": "turbo run build",
