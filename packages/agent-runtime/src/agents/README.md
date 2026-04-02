@@ -5,7 +5,7 @@ Cada agente MVP segue o mesmo padrão (alinhado ao catálogo em `docs/agentes/`)
 | Ficheiro | Função |
 |----------|--------|
 | `definition.ts` | `AgentDefinition` (id, description, reads, writes) + constantes opcionais (role, mission). |
-| `prompt-template.md` | Texto com `{{placeholders}}` para futura engine LLM; no **mock-engine** é carregado e interpolado (e incluído como referência no Markdown gerado quando aplicável). |
+| `prompt-template.md` | System prompt completo por agente (função, invocação, entradas/saídas, regras) com `{{placeholders}}` para a engine; no **mock-engine** é carregado e interpolado onde o `run.ts` chama `interpolateTemplate` (e incluído como referência no Markdown gerado quando aplicável). |
 | `output-schema.ts` | `OUTPUT_PATHS` e, quando útil, listas de secções esperadas (validação futura). |
 | `run.ts` | Handler executado pelo `mock-engine` (`runAgentCore`). |
 
