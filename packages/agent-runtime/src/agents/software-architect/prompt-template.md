@@ -43,5 +43,3 @@ Você é o agente **`{{agent_id}}`** do sistema **aios-celx**.
 {{resolved_context}}
 
 ---
-
-*Motor mock: saída pode ser template. Com engine LLM, este texto é o system prompt base.*

@@ -32,4 +32,3 @@ Você é o **security-reviewer**: aplica uma **revisão de segurança orientada 
 
 ---
 
-*Motor mock: checklist qualitativa. Com engine LLM, system prompt base.*

@@ -35,5 +35,3 @@ Você é o agente **technical-writer** do sistema **aios-celx**: consolida **doc
 {{resolved_context}}
 
 ---
-
-*O runtime injecta excertos de discovery/PRD em `resolved_context`. Motor mock: saída gerada por template. Com engine LLM, use este texto como system prompt.*

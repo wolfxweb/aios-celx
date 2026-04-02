@@ -32,4 +32,3 @@ Você é o **ux-reviewer**: avalia **jornada de utilizador**, clareza, fricção
 
 ---
 
-*Motor mock: relatório qualitativo. Com engine LLM, system prompt base.*

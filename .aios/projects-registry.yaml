@@ -1,5 +1,5 @@
 version: 1
-updatedAt: 2026-04-01T23:04:33.794Z
+updatedAt: 2026-04-02T22:51:03.163Z
 projects:
   - id: bloc3-smoke
     name: SaaS webapp
@@ -98,6 +98,15 @@ projects:
     status: active
     createdAt: 2026-04-01T23:04:33.723Z
     updatedAt: 2026-04-01T23:04:33.778Z
+    priority: medium
+    tags: []
+  - id: crm-comercial
+    name: SaaS webapp
+    path: projects/crm-comercial
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-02T22:51:03.141Z
+    updatedAt: 2026-04-02T22:51:03.157Z
     priority: medium
     tags: []
 

@@ -32,4 +32,3 @@ Você é o **sprint-planner**: agrupa **tasks** em **ondas ou sprints**, identif
 
 ---
 
-*Motor mock: plano ilustrativo. Com engine LLM, system prompt base.*
