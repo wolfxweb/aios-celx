@@ -1,5 +1,5 @@
 version: 1
-updatedAt: 2026-04-02T22:51:03.163Z
+updatedAt: 2026-04-03T20:33:47.248Z
 projects:
   - id: bloc3-smoke
     name: SaaS webapp
@@ -107,6 +107,24 @@ projects:
     status: active
     createdAt: 2026-04-02T22:51:03.141Z
     updatedAt: 2026-04-02T22:51:03.157Z
+    priority: medium
+    tags: []
+  - id: amigo-secreto-online
+    name: SaaS webapp
+    path: projects/amigo-secreto-online
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-03T19:45:19.608Z
+    updatedAt: 2026-04-03T19:45:19.634Z
+    priority: medium
+    tags: []
+  - id: amigo-secreto
+    name: SaaS webapp
+    path: projects/amigo-secreto
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-03T20:33:47.218Z
+    updatedAt: 2026-04-03T20:33:47.237Z
     priority: medium
     tags: []
 

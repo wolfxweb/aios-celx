@@ -6,3 +6,7 @@ export const agentDefinition: AgentDefinition = {
   reads: ["docs/prd.md", "docs/discovery.md", "backlog/stories.yaml"],
   writes: ["docs/ux-review.md"],
 };
+
+export const agentRole = "UX Reviewer";
+export const agentMission =
+  "Avaliar jornada, clareza, fricção e consistência de experiência com base em PRD, discovery e stories; produzir docs/ux-review.md (sem UI real no mock).";

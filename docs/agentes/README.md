@@ -40,5 +40,6 @@ Implementados como **mocks** em `packages/agent-runtime/src/agents/<id>/` — `p
 
 ## Leitura relacionada
 
+- [Modularidade: agentes, workflows e equivalência a “squads” externos](./modularidade-agentes-workflows-aios-celx.md)
 - [Plano de implementação e testes MVP](./plano-implementacao.md)
 - `docs/plano-execucao/README.md` e `docs/etapas/README.md` — ordem dos blocos e prompts longos; **só na tua cópia** se mantiveres essas pastas localmente (não vão no Git por omissão, ao contrário de `docs/agentes/`).

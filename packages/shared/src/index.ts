@@ -217,6 +217,11 @@ export const ProjectConfigSchema = z.object({
   git: GitProjectConfigSchema.optional(),
   /** Bloco 6.3 — governed automation limits (partial in YAML; merged on load). */
   autonomy: AutonomyPolicyPartialSchema.optional(),
+  /**
+   * When workflow gate checks pass: `auto` advances state without `aios approve` (default);
+   * `manual` requires `aios approve --gate <id>` per gate.
+   */
+  gateApproval: z.enum(["auto", "manual"]).optional(),
 });
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
@@ -253,6 +258,7 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
     engines,
     git,
     autonomy: mergeAutonomyPolicy(config.autonomy),
+    gateApproval: config.gateApproval ?? "auto",
   };
 }
 

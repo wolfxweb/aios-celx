@@ -6,3 +6,7 @@ export const agentDefinition: AgentDefinition = {
   reads: ["docs/prd.md", "docs/architecture.md", "backlog/stories.yaml"],
   writes: ["docs/data-model-notes.md"],
 };
+
+export const agentRole = "DB Designer";
+export const agentMission =
+  "Produzir notas de modelo de dados (entidades, relações, índices, impacto de schema) alinhadas ao PRD e à arquitectura, sem migrações reais no mock.";

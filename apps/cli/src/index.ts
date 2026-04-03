@@ -47,6 +47,7 @@ import {
 } from "@aios-celx/git-integration";
 import {
   advanceAfterGateApproval,
+  autoAdvanceWhileGatesPass,
   evaluateGate,
   getActiveStep,
   getNextStep,
@@ -54,7 +55,7 @@ import {
   resolveNextAction,
   syncStateToActiveStep,
 } from "@aios-celx/workflow-engine";
-import type { ProjectConfig } from "@aios-celx/shared";
+import type { ProjectConfig, ProjectState, WorkflowDefinition } from "@aios-celx/shared";
 import { mergeAutonomyPolicy } from "@aios-celx/shared";
 import {
   addGlobalMemoryEntry,
@@ -79,6 +80,28 @@ function assertGitEnabled(config: ProjectConfig): void {
       "Git is disabled for this project. Set `git.enabled: true` in .aios/config.yaml",
     );
   }
+}
+
+/** When `gateApproval` is `auto`, persist workflow advances for gates that already pass checks. */
+async function maybeAutoAdvanceWorkflowGates(
+  projectsRoot: string,
+  projectId: string,
+  projRoot: string,
+  workflow: WorkflowDefinition,
+  state: ProjectState,
+  projectConfig: ProjectConfig,
+): Promise<{ state: ProjectState; autoAdvancedGates: string[] }> {
+  const gateApproval = projectConfig.gateApproval ?? "auto";
+  const { state: next, advancedGates } = await autoAdvanceWhileGatesPass(
+    projRoot,
+    workflow,
+    state,
+    gateApproval,
+  );
+  if (advancedGates.length > 0) {
+    await writeState(projectsRoot, projectId, next);
+  }
+  return { state: next, autoAdvancedGates: advancedGates };
 }
 
 function resolveProjectsRoot(): string {
@@ -299,6 +322,16 @@ program
       }
     }
 
+    const { state: stateAfterAuto, autoAdvancedGates } = await maybeAutoAdvanceWorkflowGates(
+      root,
+      opts.project,
+      projRoot,
+      workflow,
+      state,
+      projectConfig,
+    );
+    state = stateAfterAuto;
+
     const active = getActiveStep(workflow, state);
     const nextStep = getNextStep(workflow, state);
     const action = await resolveNextAction(projRoot, workflow, state);
@@ -317,6 +350,8 @@ program
       currentAgent: state.currentAgent,
       nextGate: state.nextGate,
       completedGates: state.completedGates,
+      gateApproval: projectConfig.gateApproval ?? "auto",
+      autoAdvancedGates: autoAdvancedGates.length > 0 ? autoAdvancedGates : undefined,
       activeStep: active
         ? {
             ...active,
@@ -383,7 +418,22 @@ program
         artifactsWritten: taskResult.ok ? [taskResult.reportPath] : [],
         errors: taskResult.ok ? undefined : ["engineer-task-failed"],
       };
-      console.log(JSON.stringify({ engine: routing, result, taskId, via: "runEngineerTask" }, null, 2));
+      let autoAdvancedGates: string[] | undefined;
+      if (result.success) {
+        const adv = await maybeAutoAdvanceWorkflowGates(
+          root,
+          opts.project,
+          projRoot,
+          workflow,
+          state,
+          projectConfig,
+        );
+        autoAdvancedGates =
+          adv.autoAdvancedGates.length > 0 ? adv.autoAdvancedGates : undefined;
+      }
+      console.log(
+        JSON.stringify({ engine: routing, result, taskId, via: "runEngineerTask", autoAdvancedGates }, null, 2),
+      );
       if (!result.success) {
         process.exitCode = 1;
       }
@@ -411,7 +461,26 @@ program
         artifactsWritten: taskResult.ok ? [taskResult.reportPath, taskResult.jsonPath] : [],
         errors: taskResult.ok ? undefined : ["qa-task-failed"],
       };
-      console.log(JSON.stringify({ engine: routing, result, taskId, via: "runQaTask" }, null, 2));
+      let autoAdvancedGatesQa: string[] | undefined;
+      if (result.success) {
+        const adv = await maybeAutoAdvanceWorkflowGates(
+          root,
+          opts.project,
+          projRoot,
+          workflow,
+          state,
+          projectConfig,
+        );
+        autoAdvancedGatesQa =
+          adv.autoAdvancedGates.length > 0 ? adv.autoAdvancedGates : undefined;
+      }
+      console.log(
+        JSON.stringify(
+          { engine: routing, result, taskId, via: "runQaTask", autoAdvancedGates: autoAdvancedGatesQa },
+          null,
+          2,
+        ),
+      );
       if (!result.success) {
         process.exitCode = 1;
       }
@@ -426,7 +495,20 @@ program
       workflow,
       projectConfig,
     );
-    console.log(JSON.stringify({ engine: routing, result }, null, 2));
+    let autoAdvancedGates: string[] | undefined;
+    if (result.success) {
+      const adv = await maybeAutoAdvanceWorkflowGates(
+        root,
+        opts.project,
+        projRoot,
+        workflow,
+        state,
+        projectConfig,
+      );
+      autoAdvancedGates =
+        adv.autoAdvancedGates.length > 0 ? adv.autoAdvancedGates : undefined;
+    }
+    console.log(JSON.stringify({ engine: routing, result, autoAdvancedGates }, null, 2));
     if (!result.success) {
       process.exitCode = 1;
     }

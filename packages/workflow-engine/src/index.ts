@@ -2,6 +2,7 @@ export {
   advanceAfterGateApproval,
   syncStateToActiveStep,
 } from "./advance.js";
+export { autoAdvanceWhileGatesPass } from "./auto-advance-gates.js";
 export { evaluateGate, type GateEvaluationContext } from "./gates.js";
 export {
   assertSafeBundledWorkflowId,

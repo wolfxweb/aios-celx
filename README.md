@@ -11,7 +11,7 @@ Quem usa **Cursor**: **[AGENTS.md](./AGENTS.md)**, o guia [docs/plano-execucao/0
 
 | Comando | Uso |
 |---------|-----|
-| `/aios-define-product` | Conversa para definir produto/funcionalidades (orquestrador); não substitui o CLI. |
+| `/aios-define-scope` | Orquestrador: **`docs/prd.md`**, outros testes a pedido, **`relatorio-final.md`** (incl. sugestões opcionais de testes), **`casos-de-teste.md`**, **YAML**; não substitui o CLI. |
 | `/aios-next` | Passo activo, gate e próxima acção; opcional `--sync`. |
 | `/aios-status` | `config` + `state` do projeto gerido. |
 | `/aios-run-agent` | `aios run --agent` com verificações de `currentAgent` / `currentTaskId`. |
@@ -52,6 +52,7 @@ Este README centra-se no **framework e no CLI**; no **final** há **dois project
 Ficheiro central do projeto gerido:
 
 - **`projectId`**, **`blueprint`**, **`workflow`** — id do workflow (ficheiro em `packages/workflow-engine/workflows/`, omissão `default-software-delivery`).
+- **`gateApproval`** — `auto` (omissão) ou `manual`. Com **`auto`**, quando os artefactos passam nas verificações da *gate* do passo activo, o estado do workflow **avança sem** `aios approve` (após `run` com sucesso ou ao correr `next`). Com **`manual`**, é necessário **`pnpm exec aios approve --gate <gateId>`** por *gate*, como antes.
 - **`engines`** — roteamento de motores de execução: obrigatório **`default`**; chaves adicionais são **ids de agente** → **id de engine** (ex.: `requirements-analyst: mock-engine`). Hoje o motor útil por defeito é **`mock-engine`**; outros ids (`claude-code`, `codex`, `cursor`) são *stubs* até integração real.
 - **`git`** — integração Git só na pasta do projeto (`enabled`, `autoInit`, prefixos de branch/commit).
 - **`autonomy`** — política do scheduler (ver abaixo); campos opcionais são fundidos com omissões seguras.
@@ -74,7 +75,7 @@ Estado em tempo de execução: **`projects/<id>/.aios/state.json`**. Backlog: **
 
 | Recurso | Descrição |
 |---------|-----------|
-| **Workflow** | Passos, agentes e *gates* definidos em YAML; comandos `next`, `run`, `approve` avançam o fluxo. |
+| **Workflow** | Passos, agentes e *gates* em YAML; `next` e `run` avançam o fluxo; com `gateApproval: manual` em `config.yaml` usa-se também `approve` por *gate*. |
 | **Agentes** | Executados via **engine** resolvida por agente; contexto montado pelo **context-resolver** (ficheiros + memória filtrada). |
 | **Backlog** | Epics, stories e tasks com estados; `run:task`, `run:qa`, `run:story` para fluxos de implementação e QA. |
 | **Memória** | Global e por projeto; categorias por agente (`AGENT_MEMORY_CATEGORIES` em `@aios-celx/memory-system`). |
@@ -128,8 +129,17 @@ Workflow e agentes:
 pnpm exec aios next --project meu-projeto
 pnpm exec aios next --project meu-projeto --sync
 pnpm exec aios run --project meu-projeto --agent requirements-analyst
+# Com gateApproval: manual em .aios/config.yaml (omissão é auto):
 pnpm exec aios approve --project meu-projeto --gate discovery_complete
 ```
+
+Com **`gateApproval: auto`** (omissão), depois de um `run` bem-sucedido ou ao correr `next`, o CLI **grava o avanço** das *gates* cujos critérios já se cumprem (o JSON de `next` pode incluir `autoAdvancedGates`). Para **voltar ao fluxo com aprovação explícita**, em **`projects/<id>/.aios/config.yaml`**:
+
+```yaml
+gateApproval: manual
+```
+
+Depois de alterar, use `approve` sempre que `next` recomendar esperar aprovação da *gate* activa.
 
 Backlog e execução:
 
@@ -187,6 +197,8 @@ Novos motores devem implementar o contrato **`BaseEngine`** em `@aios-celx/engin
 ### Workflow
 
 O campo **`workflow`** aponta para um ficheiro em **`packages/workflow-engine/workflows/`** (por omissão **`default-software-delivery`**). Alterar o workflow muda passos, agentes e *gates*; mantenha o estado do projeto coerente com o novo fluxo (ou crie projeto novo).
+
+O campo **`gateApproval`** (`auto` ou `manual`) controla se o avanço entre passos exige **`aios approve`** quando as verificações da *gate* já passam. Ver secção [Uso (CLI) — Workflow e agentes](#uso-cli).
 
 ### Contexto e memória por agente
 
