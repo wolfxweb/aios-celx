@@ -34,7 +34,7 @@ pnpm lint
 - **Pasta de projetos geridos:** por omissão **`<raiz do monorepo>/projects`** (a raiz deteta-se a partir do cwd, p.ex. via `pnpm-workspace.yaml`). Sobrescreva com **`AIOS_PROJECTS_ROOT`** (absoluto ou relativo ao processo) se precisar de outro sítio.
 - **Raiz do monorepo em ferramentas externas:** opcional **`AIOS_CELX_ROOT`** ou **`AIOS_MONOREPO_ROOT`** quando o processo não corre de dentro da árvore do repo.
 
-Este README centra-se no **framework e no CLI**; um **projecto de exemplo runnable** (Assistência Tickets) está descrito **no final** — secção [Projeto de exemplo (referência)](#projeto-de-exemplo-referência-assistência-tickets).
+Este README centra-se no **framework e no CLI**; no **final** há **dois projectos de exemplo runnable** geridos em `projects/`: [Assistência Tickets](#assistência-tickets) (Laravel) e [CRM AIOS-CELX](#crm-aios-celx) (FastAPI + Vue; pasta `crm-comercial`).
 
 ## Configuração
 
@@ -202,11 +202,13 @@ Com **`scheduler:run --max-concurrent 2`** (ou o mesmo campo no `POST` da API), 
 
 ---
 
-## Projeto de exemplo (referência): Assistência Tickets
+## Projetos de exemplo (referência)
 
-Secção **opcional** para quem quer ver um **produto web concreto** gerido pelo workflow aios (documentação, backlog, agentes) — **não** é o foco principal do monorepo; o foco é o **framework** em Node.js + TypeScript e o CLI `aios` (secções acima).
+Secção **opcional** para quem quer ver **produtos web concretos** geridos pelo workflow aios (documentação, backlog, agentes) — **não** é o foco principal do monorepo; o foco é o **framework** em Node.js + TypeScript e o CLI `aios` (secções acima).
 
-O exemplo é um sistema de **tickets de assistência técnica** (Laravel + SQLite).
+### Assistência Tickets
+
+Sistema de **tickets de assistência técnica** (Laravel + SQLite).
 
 | | |
 |---|---|
@@ -214,7 +216,7 @@ O exemplo é um sistema de **tickets de assistência técnica** (Laravel + SQLit
 | **Pasta do projeto gerido** | [`projects/assistencia-tickets/`](projects/assistencia-tickets/) (`docs/`, `backlog/`, `.aios/`) |
 | **Código da aplicação** | [`projects/assistencia-tickets/web/`](projects/assistencia-tickets/web/) |
 
-### Executar a aplicação web de exemplo
+#### Executar a aplicação web (Assistência Tickets)
 
 Requisitos: **PHP 8.2+**, **Composer 2**, extensões habituais do Laravel (incl. `pdo_sqlite`).
 
@@ -243,15 +245,65 @@ Contas criadas pelo seed (palavra-passe em todas: **`password`**):
 
 Mais pormenores: **[projects/assistencia-tickets/web/README.md](projects/assistencia-tickets/web/README.md)**.
 
-### Orquestrar este exemplo com o CLI `aios`
-
-Na **raiz do monorepo** (`pnpm-workspace.yaml`):
+#### Orquestrar com o CLI `aios`
 
 ```bash
-pnpm install
-pnpm build
 pnpm exec aios status --project assistencia-tickets
 pnpm exec aios next --project assistencia-tickets
 ```
 
-Workflow e backlog **complementam** a app Laravel; comandos gerais: secção **Uso (CLI)**. Ficheiros do estado: `projects/assistencia-tickets/.aios/`, `docs/`, `backlog/`.
+Workflow e backlog **complementam** a app Laravel; comandos gerais: secção **Uso (CLI)**. Estado e docs: `projects/assistencia-tickets/.aios/`, `docs/`, `backlog/`.
+
+### CRM AIOS-CELX
+
+**CRM AIOS-CELX** — CRM em português (pt-BR): leads, empresas, contatos, oportunidades com **pipeline**, tarefas, atividades, relatórios, tags e busca — **API FastAPI** (SQLite, JWT) + **SPA Vue 3 + Vuetify** (Vite). O id do projecto gerido pelo CLI continua **`crm-comercial`** (nome da pasta). Útil como referência de integração REST + front moderno no mesmo monorepo.
+
+| | |
+|---|---|
+| **ID do projeto (`--project`)** | `crm-comercial` |
+| **Pasta do projeto gerido** | [`projects/crm-comercial/`](projects/crm-comercial/) (`docs/`, `backlog/`, `.aios/`, `qa/`) |
+| **Backend** | [`projects/crm-comercial/api/`](projects/crm-comercial/api/) |
+| **Frontend** | [`projects/crm-comercial/web/`](projects/crm-comercial/web/) |
+
+#### Executar API + frontend (desenvolvimento)
+
+Dois terminais (ou processos em background). Requisitos: **Python 3.11+** (dependências em `api/requirements.txt`) e **Node.js 20+** com **pnpm**.
+
+**1 — API** (porta **8000**):
+
+```bash
+cd projects/crm-comercial/api
+export PYTHONPATH=.
+python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+- Documentação OpenAPI: **http://127.0.0.1:8000/docs**
+- Prefixo REST: **`/api/v1`**
+
+**2 — Web** (Vite; por omissão **5173**):
+
+```bash
+cd projects/crm-comercial/web
+pnpm install   # na primeira vez
+pnpm run dev
+```
+
+O `vite.config.ts` faz **proxy** de `/api` para `http://127.0.0.1:8000`, por isso podes deixar `VITE_API_BASE_URL` vazio e usar URLs relativas. Abre **http://localhost:5173/** — Home pública em `/`, login em `/login`, área autenticada em `/app`.
+
+Conta criada no arranque da API (base vazia ou seed):
+
+| | |
+|---|---|
+| **E-mail** | `admin@example.com` |
+| **Senha** | `admin123` |
+
+Pormenores, testes `pytest` e lista de endpoints: **[projects/crm-comercial/api/README.md](projects/crm-comercial/api/README.md)** · rotas e tema: **[projects/crm-comercial/web/README.md](projects/crm-comercial/web/README.md)**.
+
+#### Orquestrar com o CLI `aios`
+
+```bash
+pnpm exec aios status --project crm-comercial
+pnpm exec aios next --project crm-comercial
+```
+
+PRD e especificação funcional: `projects/crm-comercial/docs/`.
