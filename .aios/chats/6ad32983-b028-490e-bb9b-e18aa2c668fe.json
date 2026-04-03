@@ -1,0 +1,12 @@
+{
+  "chatId": "6ad32983-b028-490e-bb9b-e18aa2c668fe",
+  "scope": "project",
+  "projectId": "crm-comercial",
+  "title": "Conversa do projeto crm-comercial",
+  "runner": "codex-cli",
+  "model": "codex",
+  "status": "active",
+  "messages": [],
+  "createdAt": "2026-04-03T23:08:09.767Z",
+  "updatedAt": "2026-04-03T23:08:09.768Z"
+}

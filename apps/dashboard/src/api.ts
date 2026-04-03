@@ -6,8 +6,31 @@ export function getApiBase(): string {
   return "http://127.0.0.1:3030";
 }
 
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+function handleUnauthorized(): void {
+  authToken = null;
+  localStorage.removeItem("aios_auth_token");
+  localStorage.removeItem("aios_auth_user");
+  if (window.location.pathname !== "/") {
+    window.location.replace("/");
+  }
+}
+
 export async function apiGet<T>(path: string): Promise<T> {
-  const r = await fetch(`${getApiBase()}${path}`);
+  const headers: Record<string, string> = {};
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+  const r = await fetch(`${getApiBase()}${path}`, { headers });
+  if (r.status === 401) {
+    handleUnauthorized();
+    throw new Error("401 Unauthorized");
+  }
   if (!r.ok) {
     let detail = "";
     try {
@@ -27,9 +50,16 @@ export async function apiGet<T>(path: string): Promise<T> {
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const r = await fetch(`${getApiBase()}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  if (r.status === 401) {
+    handleUnauthorized();
+    throw new Error("401 Unauthorized");
+  }
   if (!r.ok) {
     let detail = "";
     try {

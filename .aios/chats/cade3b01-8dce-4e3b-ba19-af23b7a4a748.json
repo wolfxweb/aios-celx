@@ -1,0 +1,12 @@
+{
+  "chatId": "cade3b01-8dce-4e3b-ba19-af23b7a4a748",
+  "scope": "project",
+  "projectId": "amigo-secreto",
+  "title": "Conversa do projeto amigo-secreto",
+  "runner": "codex-cli",
+  "model": "codex",
+  "status": "active",
+  "messages": [],
+  "createdAt": "2026-04-03T23:03:54.569Z",
+  "updatedAt": "2026-04-03T23:03:54.570Z"
+}

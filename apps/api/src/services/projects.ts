@@ -1,3 +1,4 @@
+import { loadTasks } from "@aios-celx/backlog-manager";
 import { listQueueItems } from "@aios-celx/execution-queue";
 import { loadProjectMemory } from "@aios-celx/memory-system";
 import {
@@ -5,6 +6,7 @@ import {
   loadProjectConfig,
   listProjectsOnDisk,
   projectExists,
+  projectPath,
 } from "@aios-celx/project-manager";
 import { mergeAutonomyPolicy } from "@aios-celx/shared";
 import { readState } from "@aios-celx/state-manager";
@@ -46,6 +48,12 @@ export async function getProjectSummary(
   projectId: string,
 ) {
   return buildProjectSummary(monorepoRoot, projectsRoot, projectId);
+}
+
+export async function getProjectTasks(projectsRoot: string, projectId: string) {
+  const root = projectPath(projectsRoot, projectId);
+  const doc = await loadTasks(root);
+  return doc.tasks;
 }
 
 export async function getProjectAutonomy(projectsRoot: string, projectId: string) {

@@ -1,0 +1,12 @@
+{
+  "chatId": "592e96b0-fc51-476f-9449-52fd2f92fb91",
+  "scope": "project",
+  "projectId": "assistencia-tickets",
+  "title": "Conversa do projeto assistencia-tickets",
+  "runner": "codex-cli",
+  "model": "codex",
+  "status": "active",
+  "messages": [],
+  "createdAt": "2026-04-03T23:43:44.520Z",
+  "updatedAt": "2026-04-03T23:43:44.521Z"
+}

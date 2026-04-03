@@ -4,9 +4,14 @@ import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { ApiEnvConfig } from "./config.js";
+import * as authSvc from "./services/auth-service.js";
+import * as chatSvc from "./services/chat-service.js";
+import * as modelRoutingSvc from "./services/model-routing.js";
 import * as portfolioSvc from "./services/portfolio.js";
+import * as projectWorkbench from "./services/project-workbench.js";
 import * as projects from "./services/projects.js";
 import * as schedSvc from "./services/scheduler.js";
+import * as workspaceSvc from "./services/workspace.js";
 import { readApiPackageVersion } from "./version.js";
 
 function assertSafeProjectId(projectId: string): boolean {
@@ -20,10 +25,42 @@ const schedulerBodySchema = z.object({
   maxConcurrent: z.number().int().min(1).max(2).optional(),
 });
 
+const projectChatBodySchema = z.object({
+  message: z.string().trim().min(1),
+});
+
+const createChatBodySchema = z.object({
+  scope: z.enum(["global", "project"]),
+  projectId: z.string().trim().min(1).optional(),
+  title: z.string().trim().min(1).optional(),
+  runner: z.string().trim().min(1).optional(),
+  model: z.string().trim().min(1).optional(),
+});
+
+const loginBodySchema = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().trim().min(1),
+});
+
 export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
   const app = Fastify({ logger: true });
   await app.register(cors, { origin: true });
   const version = readApiPackageVersion();
+
+  app.addHook("preHandler", async (request, reply) => {
+    const path = request.url.split("?")[0] ?? request.url;
+    const publicPaths = new Set(["/health", "/auth/login", "/auth/default-user"]);
+    if (publicPaths.has(path)) {
+      return;
+    }
+    const session = authSvc.resolveUserFromAuthHeader(
+      typeof request.headers.authorization === "string" ? request.headers.authorization : undefined,
+    );
+    if (!session) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+    (request as typeof request & { authUser?: unknown }).authUser = session.user;
+  });
 
   app.get("/health", async () => ({
     ok: true,
@@ -33,9 +70,86 @@ export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
     monorepoRoot: cfg.monorepoRoot,
   }));
 
+  app.get("/auth/default-user", async () => ({
+    user: authSvc.getDefaultUserInfo(),
+    credentials: authSvc.getDefaultCredentials(),
+  }));
+
+  app.post("/auth/login", async (request, reply) => {
+    const parsed = loginBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    const session = authSvc.loginWithPassword(parsed.data.username, parsed.data.password);
+    if (!session) {
+      return reply.code(401).send({ error: "invalid_credentials" });
+    }
+    return session;
+  });
+
   app.get("/projects", async () => {
     const projectIds = await projects.listProjectIds(cfg.projectsRoot);
     return { projectIds, projectsRoot: cfg.projectsRoot };
+  });
+
+  app.get("/workspace/overview", async () => {
+    const overview = await workspaceSvc.buildWorkspaceOverview(cfg.monorepoRoot, cfg.projectsRoot);
+    return overview;
+  });
+
+  app.get("/model-routing", async () => {
+    const config = await modelRoutingSvc.ensureModelRoutingConfig(cfg.monorepoRoot);
+    return { config };
+  });
+
+  app.get("/chats", async (request) => {
+    const query = request.query as { scope?: "global" | "project"; projectId?: string };
+    const chats = await chatSvc.listChats(cfg.monorepoRoot, {
+      scope: query.scope,
+      projectId: query.projectId,
+    });
+    return { chats };
+  });
+
+  app.post("/chats", async (request, reply) => {
+    const parsed = createChatBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    if (parsed.data.scope === "project" && !parsed.data.projectId) {
+      return reply.code(400).send({ error: "project_id_required" });
+    }
+    const chat = await chatSvc.createChat(cfg.monorepoRoot, parsed.data);
+    return { chat };
+  });
+
+  app.get("/chats/:chatId", async (request, reply) => {
+    const { chatId } = request.params as { chatId: string };
+    const chat = await chatSvc.getChat(cfg.monorepoRoot, chatId);
+    if (!chat) {
+      return reply.code(404).send({ error: "chat_not_found", chatId });
+    }
+    return { chat };
+  });
+
+  app.post("/chats/:chatId/messages", async (request, reply) => {
+    const { chatId } = request.params as { chatId: string };
+    const parsed = projectChatBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    try {
+      const chat = await chatSvc.appendUserMessageAndRespond(
+        cfg.monorepoRoot,
+        cfg.projectsRoot,
+        chatId,
+        parsed.data.message,
+      );
+      return { chat };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return reply.code(400).send({ error: "chat_failed", message });
+    }
   });
 
   app.get("/projects/:projectId", async (request, reply) => {
@@ -104,6 +218,69 @@ export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
       return reply.code(404).send({ error: "project_not_found", projectId });
     }
     return { projectId, summary };
+  });
+
+  app.get("/projects/:projectId/tasks", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    try {
+      const tasks = await projects.getProjectTasks(cfg.projectsRoot, projectId);
+      return { projectId, tasks };
+    } catch {
+      return reply.code(404).send({ error: "tasks_not_found", projectId });
+    }
+  });
+
+  app.get("/projects/:projectId/context", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    try {
+      const context = await projectWorkbench.getProjectWorkbenchContext(
+        cfg.monorepoRoot,
+        cfg.projectsRoot,
+        projectId,
+      );
+      return { projectId, context };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return reply.code(400).send({ error: "context_failed", message });
+    }
+  });
+
+  app.post("/projects/:projectId/chat", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const parsed = projectChatBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    try {
+      const result = await projectWorkbench.chatAboutProject(
+        cfg.monorepoRoot,
+        cfg.projectsRoot,
+        projectId,
+        parsed.data.message,
+      );
+      return result;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return reply.code(400).send({ error: "chat_failed", message });
+    }
   });
 
   app.get("/projects/:projectId/autonomy", async (request, reply) => {

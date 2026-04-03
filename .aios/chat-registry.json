@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-03T23:43:44.522Z",
+  "chats": [
+    {
+      "chatId": "592e96b0-fc51-476f-9449-52fd2f92fb91",
+      "scope": "project",
+      "projectId": "assistencia-tickets",
+      "title": "Conversa do projeto assistencia-tickets",
+      "runner": "codex-cli",
+      "model": "codex",
+      "status": "active",
+      "createdAt": "2026-04-03T23:43:44.520Z",
+      "updatedAt": "2026-04-03T23:43:44.521Z",
+      "messageCount": 0
+    },
+    {
+      "chatId": "60cca061-6119-45a6-90aa-8fb5e504d140",
+      "scope": "global",
+      "projectId": null,
+      "title": "Nova conversa global",
+      "runner": "claude-code-cli",
+      "model": "sonnet",
+      "status": "active",
+      "createdAt": "2026-04-03T23:02:56.790Z",
+      "updatedAt": "2026-04-03T23:16:39.316Z",
+      "messageCount": 6
+    },
+    {
+      "chatId": "6ad32983-b028-490e-bb9b-e18aa2c668fe",
+      "scope": "project",
+      "projectId": "crm-comercial",
+      "title": "Conversa do projeto crm-comercial",
+      "runner": "codex-cli",
+      "model": "codex",
+      "status": "active",
+      "createdAt": "2026-04-03T23:08:09.767Z",
+      "updatedAt": "2026-04-03T23:08:09.768Z",
+      "messageCount": 0
+    },
+    {
+      "chatId": "cade3b01-8dce-4e3b-ba19-af23b7a4a748",
+      "scope": "project",
+      "projectId": "amigo-secreto",
+      "title": "Conversa do projeto amigo-secreto",
+      "runner": "codex-cli",
+      "model": "codex",
+      "status": "active",
+      "createdAt": "2026-04-03T23:03:54.569Z",
+      "updatedAt": "2026-04-03T23:03:54.570Z",
+      "messageCount": 0
+    }
+  ]
+}

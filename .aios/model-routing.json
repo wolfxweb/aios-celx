@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-03T23:02:20.568Z",
+  "providers": {
+    "codex-cli": {
+      "type": "cli",
+      "enabled": true,
+      "command": "codex",
+      "defaultModel": "codex"
+    },
+    "gemini-cli": {
+      "type": "cli",
+      "enabled": true,
+      "command": "gemini",
+      "defaultModel": "gemini-2.5-pro"
+    },
+    "claude-code-cli": {
+      "type": "cli",
+      "enabled": true,
+      "command": "claude",
+      "defaultModel": "sonnet"
+    },
+    "openrouter": {
+      "type": "api",
+      "enabled": true,
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "defaultModel": "anthropic/claude-sonnet-4"
+    }
+  },
+  "defaults": {
+    "global": {
+      "provider": "claude-code-cli",
+      "model": "sonnet"
+    },
+    "project": {
+      "provider": "codex-cli",
+      "model": "codex"
+    }
+  }
+}
