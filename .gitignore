@@ -15,6 +15,10 @@ docs/**
 # Ecosystem runtime state (local)
 .aios/global-memory.json
 
+# Tooling (Antigravity)
+!.agents/
+!.agents/**
+
 # Managed project trees (keep directory with .gitkeep only)
 projects/*
 !projects/.gitkeep
