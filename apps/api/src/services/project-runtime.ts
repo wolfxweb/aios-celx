@@ -122,6 +122,7 @@ async function resolveRuntimeCommand(
   const webPackage = await readScopedPackageScripts(projectRoot, "web");
   const apiPackage = await readScopedPackageScripts(projectRoot, "api");
   const runtimePort = String(port);
+  const apiBaseUrl = runtimeUrl(getRuntimePort(projectId, "api"));
   const explicitRuntime = config?.runtime?.[target];
   if (explicitRuntime?.command) {
     return {
@@ -130,6 +131,7 @@ async function resolveRuntimeCommand(
         PORT: runtimePort,
         WEB_PORT: target === "web" ? runtimePort : "",
         API_PORT: target === "api" ? runtimePort : "",
+        VITE_API_BASE_URL: target === "web" ? apiBaseUrl : "",
       },
       cwd: explicitRuntime.cwd ? join(projectRoot, explicitRuntime.cwd) : projectRoot,
     };
@@ -142,6 +144,7 @@ async function resolveRuntimeCommand(
         command: viteCommand ?? `npm run dev -- --host 127.0.0.1 --port ${runtimePort} --strictPort`,
         env: {
           PORT: runtimePort,
+          VITE_API_BASE_URL: apiBaseUrl,
         },
         cwd: webPackage.cwd,
       };
@@ -151,6 +154,7 @@ async function resolveRuntimeCommand(
         command: "npm run dev:web",
         env: {
           WEB_PORT: runtimePort,
+          VITE_API_BASE_URL: apiBaseUrl,
         },
         cwd: projectRoot,
       };
@@ -158,7 +162,9 @@ async function resolveRuntimeCommand(
     if (await fileExists(join(projectRoot, "web", "index.html"))) {
       return {
         command: `python3 -m http.server ${runtimePort} --directory web`,
-        env: {},
+        env: {
+          VITE_API_BASE_URL: apiBaseUrl,
+        },
         cwd: projectRoot,
       };
     }
