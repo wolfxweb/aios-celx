@@ -116,13 +116,15 @@ async function resolveRuntimeCommand(
   projectRoot: string,
   target: RuntimeTarget,
   port: number,
+  linkedPorts?: { web?: number; api?: number },
 ): Promise<{ command: string; env: Record<string, string>; cwd: string } | null> {
   const config = (await loadProjectConfig(projectsRoot, projectId).catch(() => null)) as ProjectRuntimeConfigShape | null;
   const scripts = await readPackageScripts(projectRoot);
   const webPackage = await readScopedPackageScripts(projectRoot, "web");
   const apiPackage = await readScopedPackageScripts(projectRoot, "api");
   const runtimePort = String(port);
-  const apiBaseUrl = runtimeUrl(getRuntimePort(projectId, "api"));
+  const apiBaseUrl = runtimeUrl(linkedPorts?.api ?? getRuntimePort(projectId, "api"));
+  const corsOrigins = runtimeCorsOrigins(linkedPorts?.web ?? getRuntimePort(projectId, "web"));
   const explicitRuntime = config?.runtime?.[target];
   if (explicitRuntime?.command) {
     return {
@@ -132,6 +134,7 @@ async function resolveRuntimeCommand(
         WEB_PORT: target === "web" ? runtimePort : "",
         API_PORT: target === "api" ? runtimePort : "",
         VITE_API_BASE_URL: target === "web" ? apiBaseUrl : "",
+        CORS_ORIGINS: target === "api" ? corsOrigins : "",
       },
       cwd: explicitRuntime.cwd ? join(projectRoot, explicitRuntime.cwd) : projectRoot,
     };
@@ -177,6 +180,7 @@ async function resolveRuntimeCommand(
       env: {
         API_PORT: runtimePort,
         PORT: runtimePort,
+        CORS_ORIGINS: corsOrigins,
       },
       cwd: apiPackage.cwd,
     };
@@ -188,6 +192,7 @@ async function resolveRuntimeCommand(
       env: {
         API_PORT: runtimePort,
         PORT: runtimePort,
+        CORS_ORIGINS: corsOrigins,
       },
       cwd: projectRoot,
     };
@@ -199,6 +204,7 @@ async function resolveRuntimeCommand(
       env: {
         API_PORT: runtimePort,
         PORT: runtimePort,
+        CORS_ORIGINS: corsOrigins,
       },
       cwd: join(projectRoot, "api"),
     };
@@ -210,6 +216,7 @@ async function resolveRuntimeCommand(
       env: {
         API_PORT: runtimePort,
         PORT: runtimePort,
+        CORS_ORIGINS: corsOrigins,
       },
       cwd: projectRoot,
     };
@@ -219,6 +226,7 @@ async function resolveRuntimeCommand(
       command: "node api/server.js",
       env: {
         PORT: runtimePort,
+        CORS_ORIGINS: corsOrigins,
       },
       cwd: projectRoot,
     };
@@ -250,6 +258,15 @@ async function findAvailablePort(startPort: number): Promise<number> {
 
 function runtimeUrl(port: number): string {
   return `http://127.0.0.1:${port}`;
+}
+
+function runtimeCorsOrigins(webPort: number): string {
+  const alternates = [webPort, webPort + 2, webPort + 4];
+  const origins: string[] = [];
+  for (const port of alternates) {
+    origins.push(`http://127.0.0.1:${port}`, `http://localhost:${port}`);
+  }
+  return origins.join(",");
 }
 
 function emptySnapshot(): RuntimeSnapshot {
@@ -294,6 +311,23 @@ export async function startProjectRuntime(
   const projectRoot = projectPath(projectsRoot, projectId);
   const targets: RuntimeTarget[] = target === "all" ? ["web", "api"] : [target];
   const handles = runtimeHandles.get(projectId) ?? {};
+  const plannedPorts: Partial<Record<RuntimeTarget, number>> = {};
+
+  for (const item of targets) {
+    const existing = handles[item];
+    if (existing && isPidAlive(existing.pid)) {
+      plannedPorts[item] = existing.port;
+      continue;
+    }
+    plannedPorts[item] = await findAvailablePort(getRuntimePort(projectId, item));
+  }
+
+  if (plannedPorts.web == null && handles.web && isPidAlive(handles.web.pid)) {
+    plannedPorts.web = handles.web.port;
+  }
+  if (plannedPorts.api == null && handles.api && isPidAlive(handles.api.pid)) {
+    plannedPorts.api = handles.api.port;
+  }
 
   for (const item of targets) {
     const existing = handles[item];
@@ -301,8 +335,11 @@ export async function startProjectRuntime(
       continue;
     }
 
-    const port = await findAvailablePort(getRuntimePort(projectId, item));
-    const resolved = await resolveRuntimeCommand(projectsRoot, projectId, projectRoot, item, port);
+    const port = plannedPorts[item] ?? getRuntimePort(projectId, item);
+    const resolved = await resolveRuntimeCommand(projectsRoot, projectId, projectRoot, item, port, {
+      web: plannedPorts.web,
+      api: plannedPorts.api,
+    });
     if (!resolved) {
       continue;
     }
