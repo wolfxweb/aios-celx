@@ -78,12 +78,13 @@ async function readPackageScripts(projectRoot: string): Promise<Record<string, s
 }
 
 async function resolveRuntimeCommand(
+  projectId: string,
   projectRoot: string,
   target: RuntimeTarget,
 ): Promise<{ command: string; env: Record<string, string> } | null> {
   const scripts = await readPackageScripts(projectRoot);
-  const webPort = String(getRuntimePort(projectRoot, "web" as RuntimeTarget));
-  const apiPort = String(getRuntimePort(projectRoot, "api" as RuntimeTarget));
+  const webPort = String(getRuntimePort(projectId, "web"));
+  const apiPort = String(getRuntimePort(projectId, "api"));
 
   if (target === "web") {
     if (scripts["dev:web"]) {
@@ -177,7 +178,7 @@ export async function startProjectRuntime(
     }
 
     const port = getRuntimePort(projectId, item);
-    const resolved = await resolveRuntimeCommand(projectRoot, item);
+    const resolved = await resolveRuntimeCommand(projectId, projectRoot, item);
     if (!resolved) {
       continue;
     }
