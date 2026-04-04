@@ -2,7 +2,7 @@ import { loadProjectConfig, projectPath } from "@aios-celx/project-manager";
 import { enqueue } from "@aios-celx/execution-queue";
 import { mergeAutonomyPolicy, TasksDocumentSchema, type Task } from "@aios-celx/shared";
 import { readState, updateState } from "@aios-celx/state-manager";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { readYaml, writeYaml } from "../../../../packages/artifact-manager/dist/index.js";
 import { getProjectQueue, getProjectSummary, getProjectTasks } from "./projects.js";
@@ -21,6 +21,11 @@ type ProjectWorkbenchContext = {
   autonomy: ReturnType<typeof mergeAutonomyPolicy>;
   queuePreview: Awaited<ReturnType<typeof getProjectQueue>>;
   relevantFiles: WorkbenchFile[];
+};
+
+type ConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
 };
 
 const TEXT_EXTENSIONS = new Set([
@@ -160,6 +165,112 @@ async function saveTasksDocument(projectRoot: string, tasks: Task[]) {
   await writeYaml(join(projectRoot, "backlog/tasks.yaml"), { tasks });
 }
 
+function titleFromProjectId(projectId: string): string {
+  return projectId
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function extractHtmlTitle(html: string, fallback: string): string {
+  const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+  return titleMatch?.[1]?.trim() || fallback;
+}
+
+function buildHomeCopy(productName: string) {
+  return {
+    headline: "Estruture o desenvolvimento com IA do escopo à entrega.",
+    subheadline:
+      `${productName} centraliza contexto, PRD, backlog, prompts e execução em um workspace pensado para construir software com mais clareza operacional, consistência e rastreabilidade.`,
+    workspace:
+      "Contexto do projeto, backlog, decisões e estado operacional organizados em um único ambiente de trabalho.",
+    prd: "Transforme escopo em requisitos claros, objetivos e prontos para orientar produto, engenharia e agentes.",
+    aiExecution:
+      "Conecte tasks, prompts e execução em um fluxo controlado, com histórico de outputs e contexto preservado.",
+    flow: [
+      "Criar ou abrir um projeto com contexto centralizado.",
+      "Estruturar PRD, decisões e backlog inicial.",
+      "Executar tasks com apoio de agentes e prompts organizados.",
+      "Acompanhar progresso, histórico e rastreabilidade da operação.",
+    ],
+  };
+}
+
+async function rewriteHomeCopy(projectRoot: string, projectId: string): Promise<string> {
+  const homePath = join(projectRoot, "web/index.html");
+  if (!(await pathExists(homePath))) {
+    return `Não encontrei \`web/index.html\` no projeto \`${projectId}\`, por isso ainda não consegui alterar a copy da home.`;
+  }
+
+  const html = await readFile(homePath, "utf8");
+  const productName = extractHtmlTitle(html, titleFromProjectId(projectId));
+  const copy = buildHomeCopy(productName);
+
+  let updated = html;
+  updated = updated.replace(/<h1>[\s\S]*?<\/h1>/i, `<h1>${copy.headline}</h1>`);
+  updated = updated.replace(
+    /<p class="lead">[\s\S]*?<\/p>/i,
+    `<p class="lead">
+          ${copy.subheadline}
+        </p>`,
+  );
+  updated = updated.replace(
+    /<article class="panel">\s*<h2>Project Workspace<\/h2>\s*<p>[\s\S]*?<\/p>\s*<\/article>/i,
+    `<article class="panel">
+          <h2>Project Workspace</h2>
+          <p>${copy.workspace}</p>
+        </article>`,
+  );
+  updated = updated.replace(
+    /<article class="panel">\s*<h2>PRD Generator<\/h2>\s*<p>[\s\S]*?<\/p>\s*<\/article>/i,
+    `<article class="panel">
+          <h2>PRD Generator</h2>
+          <p>${copy.prd}</p>
+        </article>`,
+  );
+  updated = updated.replace(
+    /<article class="panel">\s*<h2>AI Execution<\/h2>\s*<p>[\s\S]*?<\/p>\s*<\/article>/i,
+    `<article class="panel">
+          <h2>AI Execution</h2>
+          <p>${copy.aiExecution}</p>
+        </article>`,
+  );
+  updated = updated.replace(
+    /<ol>[\s\S]*?<\/ol>/i,
+    `<ol>
+          ${copy.flow.map((item) => `<li>${item}</li>`).join("\n          ")}
+        </ol>`,
+  );
+
+  if (updated === html) {
+    const alreadyAligned =
+      html.includes(copy.headline) &&
+      html.includes(copy.subheadline) &&
+      html.includes(copy.workspace) &&
+      html.includes(copy.prd) &&
+      html.includes(copy.aiExecution) &&
+      copy.flow.every((item) => html.includes(item));
+
+    if (alreadyAligned) {
+      return [
+        `A home do projeto \`${projectId}\` já está com a versão de copy que eu aplicaria agora.`,
+        "Não fiz novas mudanças porque o conteúdo-alvo já está presente em `web/index.html`.",
+        "Se quiseres, posso fazer uma segunda versão mais agressiva de copy, ou então alterar um bloco específico da home.",
+      ].join("\n\n");
+    }
+
+    return `Reconheci o pedido de alterar a home, mas não consegui aplicar a reescrita automaticamente em \`web/index.html\`.`;
+  }
+
+  await writeFile(homePath, updated, "utf8");
+  return [
+    `Atualizei a copy da home do projeto \`${projectId}\` em \`web/index.html\`.`,
+    `Reescrevi headline, subheadline, os blocos \`Project Workspace\`, \`PRD Generator\`, \`AI Execution\` e a seção \`Fluxo principal\`.`,
+    `Se o projeto estiver em execução, basta recarregar o frontend para veres a mudança no navegador.`,
+  ].join("\n\n");
+}
+
 async function startProjectDevelopment(projectsRoot: string, projectId: string): Promise<string> {
   const [tasks, queue] = await Promise.all([
     getProjectTasks(projectsRoot, projectId),
@@ -225,6 +336,16 @@ async function maybeHandleProjectAction(projectsRoot: string, projectId: string,
     normalized.includes("preparar implementacao")
   ) {
     return startProjectDevelopment(projectsRoot, projectId);
+  }
+
+  if (
+    normalized.includes("copy") &&
+    (normalized.includes("home") ||
+      normalized.includes("página inicial") ||
+      normalized.includes("pagina inicial") ||
+      normalized.includes("pagina iniciar"))
+  ) {
+    return rewriteHomeCopy(projectRoot, projectId);
   }
 
   const bulkStatusMatch = normalized.match(
@@ -300,25 +421,35 @@ async function maybeHandleProjectAction(projectsRoot: string, projectId: string,
   return null;
 }
 
+function buildConversationMemory(history: ConversationMessage[]): string {
+  const relevant = history
+    .slice(-6)
+    .map((message) => `${message.role === "user" ? "Tu" : "Orquestrador"}: ${message.content.replace(/\s+/g, " ").trim()}`)
+    .filter(Boolean);
+  return relevant.join(" | ");
+}
+
 function buildOperationalAnswer(input: {
   message: string;
   ctx: ProjectWorkbenchContext;
+  history: ConversationMessage[];
 }): string {
   const msg = input.message.toLowerCase();
-  const { ctx } = input;
+  const { ctx, history } = input;
   const firstFiles = ctx.relevantFiles.slice(0, 6).map((f) => `\`${f.path}\``).join(", ") || "sem ficheiros relevantes";
   const stage = ctx.state.stage ?? "unknown";
   const blocked = ctx.state.blocked ? "bloqueado" : "desbloqueado";
   const queueReady = ctx.queuePreview.filter((item) => item.status === "ready").length;
   const queueRunning = ctx.queuePreview.filter((item) => item.status === "running").length;
+  const memory = buildConversationMemory(history);
 
   if (msg.includes("codigo") || msg.includes("code") || msg.includes("arquitet") || msg.includes("estrutura")) {
     return [
-      `Analisei o projeto \`${ctx.projectId}\` e já consigo ver a estrutura principal.`,
+      `Analisei o projeto \`${ctx.projectId}\` como agente orquestrador com memória da conversa e contexto do projeto.`,
       `Raízes relevantes detetadas: ${ctx.roots.join(", ") || "nenhuma"}.`,
       `Ficheiros amostrados: ${firstFiles}.`,
       `Estado operacional atual: stage \`${stage}\`, projeto ${blocked}, ${queueReady} itens ready e ${queueRunning} running na fila.`,
-      "Este MVP ainda responde por síntese operacional do código e artefactos; o próximo passo natural é ligar uma engine real para análise e edição assistida.",
+      memory ? `Memória recente da conversa: ${memory}.` : "Ainda não há memória recente além do contexto base do projeto.",
     ].join("\n\n");
   }
 
@@ -332,6 +463,7 @@ function buildOperationalAnswer(input: {
       nextHint,
       `Sinais usados: stage \`${stage}\`, projeto ${blocked}, autonomia ${ctx.autonomy.enabled ? "ativa" : "desligada"}, contexto lido em ${summarizeKinds(ctx.relevantFiles)}.`,
       `Ficheiros base para decidir: ${firstFiles}.`,
+      memory ? `Memória recente da conversa: ${memory}.` : "Posso manter memória desta conversa para os próximos passos do projeto.",
     ].join("\n\n");
   }
 
@@ -341,14 +473,15 @@ function buildOperationalAnswer(input: {
       `Stage: \`${stage}\`. Projeto ${blocked}. Aprovação humana: ${ctx.state.requiresHumanApproval ? "sim" : "não"}.`,
       `Fila: ${ctx.queuePreview.length} itens totais, ${queueReady} ready, ${queueRunning} running.`,
       `Contexto carregado: ${summarizeKinds(ctx.relevantFiles)}.`,
+      memory ? `Memória recente: ${memory}.` : "Sem memória conversacional relevante ainda.",
     ].join("\n\n");
   }
 
   return [
-    `Já consigo conversar sobre o projeto \`${ctx.projectId}\` com contexto de docs, backlog e código.`,
+    `Estou a responder como orquestrador do projeto \`${ctx.projectId}\`, com acesso ao contexto do projeto e à memória desta conversa.`,
     `Li ${summarizeKinds(ctx.relevantFiles)}. Exemplos: ${firstFiles}.`,
     `Operacionalmente, o projeto está em stage \`${stage}\`, ${blocked}, com ${ctx.queuePreview.length} itens na fila.`,
-    "Se quiseres, pede-me para analisar arquitetura, código, próximos passos ou risco operacional deste projeto.",
+    memory ? `Memória recente da conversa: ${memory}.` : "Se quiseres, posso analisar arquitetura, alterar backlog, ajustar código ou preparar execução mantendo o contexto daqui para frente.",
   ].join("\n\n");
 }
 
@@ -407,6 +540,7 @@ export async function chatAboutProject(
   projectsRoot: string,
   projectId: string,
   message: string,
+  history: ConversationMessage[] = [],
 ) {
   const actionReply = await maybeHandleProjectAction(projectsRoot, projectId, message);
   if (actionReply) {
@@ -424,7 +558,7 @@ export async function chatAboutProject(
   }
 
   const ctx = await getProjectWorkbenchContext(monorepoRoot, projectsRoot, projectId);
-  const reply = buildOperationalAnswer({ message, ctx });
+  const reply = buildOperationalAnswer({ message, ctx, history });
   return {
     projectId,
     message: reply,

@@ -760,7 +760,18 @@ export async function appendUserMessageAndRespond(
 
   const assistantReply =
     chat.scope === "project" && chat.projectId
-      ? (await chatAboutProject(monorepoRoot, projectsRoot, chat.projectId, trimmed)).message
+      ? (
+          await chatAboutProject(
+            monorepoRoot,
+            projectsRoot,
+            chat.projectId,
+            trimmed,
+            chat.messages.map((message) => ({
+              role: message.role,
+              content: message.content,
+            })),
+          )
+        ).message
       : await buildGlobalReply(monorepoRoot, projectsRoot, chat, trimmed);
 
   const createdProjectId =
