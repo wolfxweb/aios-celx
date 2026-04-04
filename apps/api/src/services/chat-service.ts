@@ -177,6 +177,25 @@ async function buildGlobalReply(
   message: string,
 ): Promise<string> {
   const normalized = message.trim().toLowerCase();
+
+  if (
+    normalized.includes("aios-define-scope") ||
+    normalized.includes("define scope") ||
+    normalized.includes("definir escopo")
+  ) {
+    return [
+      "Vamos abrir o fluxo `aios-define-scope`.",
+      "",
+      "Primeiro preciso que escolhas explicitamente um destes caminhos:",
+      "1. Novo projeto",
+      "2. Nova funcionalidade",
+      "3. Correção",
+      "",
+      "Se for `Novo projeto`, responde com uma descrição curta do produto que queres criar.",
+      "Se for `Nova funcionalidade` ou `Correção`, responde também com o `projectId` existente.",
+    ].join("\n");
+  }
+
   const createMatch = normalized.match(/^cria(?:r)? projeto ([a-z0-9-_]+)/i);
   if (createMatch) {
     const projectId = createMatch[1] ?? "";

@@ -1,8 +1,9 @@
 import { loadProjectConfig, projectPath } from "@aios-celx/project-manager";
-import { mergeAutonomyPolicy } from "@aios-celx/shared";
+import { mergeAutonomyPolicy, TasksDocumentSchema, type Task } from "@aios-celx/shared";
 import { readState } from "@aios-celx/state-manager";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { readYaml, writeYaml } from "../../../../packages/artifact-manager/dist/index.js";
 import { getProjectQueue, getProjectSummary } from "./projects.js";
 
 type WorkbenchFile = {
@@ -149,6 +150,92 @@ function summarizeKinds(files: WorkbenchFile[]): string {
   return parts.join(", ") || "0 ficheiros";
 }
 
+async function loadTasksDocument(projectRoot: string) {
+  const raw = await readYaml<unknown>(join(projectRoot, "backlog/tasks.yaml"));
+  return TasksDocumentSchema.parse(raw);
+}
+
+async function saveTasksDocument(projectRoot: string, tasks: Task[]) {
+  await writeYaml(join(projectRoot, "backlog/tasks.yaml"), { tasks });
+}
+
+async function maybeHandleProjectAction(projectsRoot: string, projectId: string, message: string): Promise<string | null> {
+  const normalized = message.trim().toLowerCase();
+  const projectRoot = projectPath(projectsRoot, projectId);
+
+  const bulkStatusMatch = normalized.match(
+    /(?:marc(?:a|ar)|ajust(?:a|ar)|alter(?:a|ar)|mud(?:a|ar)).*tarefas?.*(pendentes|todo|em andamento|in_progress|bloqueadas|blocked|finalizadas|done).*(?:para|como).*(pendentes|todo|em andamento|in_progress|bloqueadas|blocked|finalizadas|done)/i,
+  );
+  if (bulkStatusMatch) {
+    const fromRaw = bulkStatusMatch[1] ?? "";
+    const toRaw = bulkStatusMatch[2] ?? "";
+    const normalizeStatus = (value: string): string => {
+      const v = value.toLowerCase();
+      if (v === "pendentes" || v === "todo") return "todo";
+      if (v === "em andamento" || v === "in_progress") return "in_progress";
+      if (v === "bloqueadas" || v === "blocked") return "blocked";
+      if (v === "finalizadas" || v === "done") return "done";
+      return value;
+    };
+    const fromStatus = normalizeStatus(fromRaw);
+    const toStatus = normalizeStatus(toRaw);
+    const doc = await loadTasksDocument(projectRoot);
+    const affected = doc.tasks.filter((task) => String(task.status) === fromStatus);
+    if (affected.length === 0) {
+      return `Não encontrei tarefas com estado \`${fromStatus}\` no projeto \`${projectId}\`.`;
+    }
+    const updatedTasks = doc.tasks.map((task) =>
+      String(task.status) === fromStatus ? { ...task, status: toStatus } : task,
+    );
+    await saveTasksDocument(projectRoot, updatedTasks);
+    return `Atualizei ${affected.length} tarefa(s) de \`${fromStatus}\` para \`${toStatus}\` no projeto \`${projectId}\`: ${affected
+      .slice(0, 8)
+      .map((task) => `\`${task.id}\``)
+      .join(", ")}.`;
+  }
+
+  const singleTaskMatch = normalized.match(
+    /(?:marc(?:a|ar)|ajust(?:a|ar)|alter(?:a|ar)|mud(?:a|ar)).*task\s+([a-z0-9-_]+).*(?:para|como).*(pendentes|todo|em andamento|in_progress|bloqueadas|blocked|finalizadas|done)/i,
+  );
+  if (singleTaskMatch) {
+    const taskId = (singleTaskMatch[1] ?? "").toUpperCase();
+    const statusRaw = singleTaskMatch[2] ?? "";
+    const toStatus =
+      statusRaw === "pendentes" || statusRaw === "todo"
+        ? "todo"
+        : statusRaw === "em andamento" || statusRaw === "in_progress"
+          ? "in_progress"
+          : statusRaw === "bloqueadas" || statusRaw === "blocked"
+            ? "blocked"
+            : "done";
+    const doc = await loadTasksDocument(projectRoot);
+    const target = doc.tasks.find((task) => task.id.toUpperCase() === taskId);
+    if (!target) {
+      return `Não encontrei a task \`${taskId}\` no projeto \`${projectId}\`.`;
+    }
+    const updatedTasks = doc.tasks.map((task) =>
+      task.id.toUpperCase() === taskId ? { ...task, status: toStatus } : task,
+    );
+    await saveTasksDocument(projectRoot, updatedTasks);
+    return `Atualizei a task \`${taskId}\` para \`${toStatus}\` no projeto \`${projectId}\`.`;
+  }
+
+  if (normalized.includes("implemente") || normalized.includes("executa as tarefas") || normalized.includes("faça as tarefas")) {
+    const doc = await loadTasksDocument(projectRoot);
+    const pending = doc.tasks.filter((task) => String(task.status) === "todo");
+    return [
+      `Ainda não tenho engine de execução real ligada neste chat do projeto, por isso não consigo implementar código automaticamente a partir daqui.`,
+      `Mas já identifiquei ${pending.length} tarefa(s) pendentes em \`${projectId}\`: ${pending
+        .slice(0, 8)
+        .map((task) => `\`${task.id}\``)
+        .join(", ") || "nenhuma"}.`,
+      "Se quiseres, posso já alterar estados de tasks pelo chat, ou então ligar o próximo passo para executar essas tasks por runner/scheduler.",
+    ].join("\n\n");
+  }
+
+  return null;
+}
+
 function buildOperationalAnswer(input: {
   message: string;
   ctx: ProjectWorkbenchContext;
@@ -257,6 +344,21 @@ export async function chatAboutProject(
   projectId: string,
   message: string,
 ) {
+  const actionReply = await maybeHandleProjectAction(projectsRoot, projectId, message);
+  if (actionReply) {
+    const refreshed = await getProjectWorkbenchContext(monorepoRoot, projectsRoot, projectId);
+    return {
+      projectId,
+      message: actionReply,
+      engine: "operational-mvp",
+      context: {
+        roots: refreshed.roots,
+        fileCount: refreshed.relevantFiles.length,
+        files: refreshed.relevantFiles.map((file) => ({ path: file.path, kind: file.kind })),
+      },
+    };
+  }
+
   const ctx = await getProjectWorkbenchContext(monorepoRoot, projectsRoot, projectId);
   const reply = buildOperationalAnswer({ message, ctx });
   return {

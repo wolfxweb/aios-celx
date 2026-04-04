@@ -1,4 +1,3 @@
-import { loadTasks } from "@aios-celx/backlog-manager";
 import { listQueueItems } from "@aios-celx/execution-queue";
 import { loadProjectMemory } from "@aios-celx/memory-system";
 import {
@@ -8,8 +7,10 @@ import {
   projectExists,
   projectPath,
 } from "@aios-celx/project-manager";
-import { mergeAutonomyPolicy } from "@aios-celx/shared";
+import { mergeAutonomyPolicy, TasksDocumentSchema } from "@aios-celx/shared";
 import { readState } from "@aios-celx/state-manager";
+import { readYaml } from "../../../../packages/artifact-manager/dist/index.js";
+import { join } from "node:path";
 
 export async function listProjectIds(projectsRoot: string): Promise<string[]> {
   return listProjectsOnDisk(projectsRoot);
@@ -52,7 +53,8 @@ export async function getProjectSummary(
 
 export async function getProjectTasks(projectsRoot: string, projectId: string) {
   const root = projectPath(projectsRoot, projectId);
-  const doc = await loadTasks(root);
+  const raw = await readYaml<unknown>(join(root, "backlog/tasks.yaml"));
+  const doc = TasksDocumentSchema.parse(raw);
   return doc.tasks;
 }
 

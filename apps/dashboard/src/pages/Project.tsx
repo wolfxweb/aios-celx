@@ -11,6 +11,16 @@ type QueueItemRow = {
   reason?: string | null;
 };
 
+type TaskRow = {
+  id: string;
+  storyId: string;
+  title: string;
+  description?: string;
+  type?: string;
+  status: string;
+  files?: string[];
+};
+
 type WorkbenchFile = {
   path: string;
   kind: "doc" | "backlog" | "code";
@@ -76,6 +86,20 @@ function formatDate(value: string): string {
       }).format(date);
 }
 
+function formatStatusLabel(status: string): string {
+  const normalized = status.trim().toLowerCase();
+  const map: Record<string, string> = {
+    todo: "Pendentes",
+    in_progress: "Em andamento",
+    blocked: "Bloqueadas",
+    done: "Finalizadas",
+    ready: "Prontas",
+    review: "Em revisão",
+    qa: "QA",
+  };
+  return map[normalized] ?? status.replace(/_/g, " ");
+}
+
 export default function Project() {
   const { projectId } = useParams<{ projectId: string }>();
   const id = projectId ?? "";
@@ -84,6 +108,7 @@ export default function Project() {
   const [summary, setSummary] = useState<unknown>(null);
   const [state, setState] = useState<unknown>(null);
   const [queueItems, setQueueItems] = useState<QueueItemRow[]>([]);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [memory, setMemory] = useState<unknown>(null);
   const [autonomy, setAutonomy] = useState<unknown>(null);
   const [context, setContext] = useState<ProjectWorkbenchContext | null>(null);
@@ -93,6 +118,29 @@ export default function Project() {
   const [chatSummaries, setChatSummaries] = useState<ChatSummary[]>([]);
   const [activeChat, setActiveChat] = useState<PersistedChat | null>(null);
   const [chatBusy, setChatBusy] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<string>("todo");
+
+  async function loadProjectData(projectId: string) {
+    const [sRes, stRes, qRes, tRes, mRes, aRes] = await Promise.all([
+      apiGet<{ summary: unknown }>(`/projects/${encodeURIComponent(projectId)}/summary`).catch(() => null),
+      apiGet<{ state: unknown }>(`/projects/${encodeURIComponent(projectId)}/state`).catch(() => null),
+      apiGet<{ items: QueueItemRow[] }>(`/projects/${encodeURIComponent(projectId)}/queue`),
+      apiGet<{ tasks: TaskRow[] }>(`/projects/${encodeURIComponent(projectId)}/tasks`).catch(() => null),
+      apiGet<{ memory: unknown }>(`/projects/${encodeURIComponent(projectId)}/memory`).catch(() => null),
+      apiGet<{ autonomy: unknown }>(`/projects/${encodeURIComponent(projectId)}/autonomy`),
+    ]);
+    const contextRes = await apiGet<{ context: ProjectWorkbenchContext }>(
+      `/projects/${encodeURIComponent(projectId)}/context`,
+    ).catch(() => null);
+
+    setSummary(sRes?.summary ?? null);
+    setState(stRes?.state ?? null);
+    setQueueItems(Array.isArray(qRes.items) ? qRes.items : []);
+    setTasks(Array.isArray(tRes?.tasks) ? tRes.tasks : []);
+    setMemory(mRes?.memory ?? null);
+    setAutonomy(aRes?.autonomy ?? null);
+    setContext(contextRes?.context ?? null);
+  }
 
   async function refreshProjectChats(projectId: string, targetChatId?: string) {
     const list = await apiGet<{ chats: ChatSummary[] }>(
@@ -130,23 +178,8 @@ export default function Project() {
       setLoading(true);
       setError(null);
       try {
-        const [sRes, stRes, qRes, mRes, aRes] = await Promise.all([
-          apiGet<{ summary: unknown }>(`/projects/${encodeURIComponent(id)}/summary`).catch(() => null),
-          apiGet<{ state: unknown }>(`/projects/${encodeURIComponent(id)}/state`).catch(() => null),
-          apiGet<{ items: QueueItemRow[] }>(`/projects/${encodeURIComponent(id)}/queue`),
-          apiGet<{ memory: unknown }>(`/projects/${encodeURIComponent(id)}/memory`).catch(() => null),
-          apiGet<{ autonomy: unknown }>(`/projects/${encodeURIComponent(id)}/autonomy`),
-        ]);
-        const contextRes = await apiGet<{ context: ProjectWorkbenchContext }>(
-          `/projects/${encodeURIComponent(id)}/context`,
-        ).catch(() => null);
+        await loadProjectData(id);
         if (cancelled) return;
-        setSummary(sRes?.summary ?? null);
-        setState(stRes?.state ?? null);
-        setQueueItems(Array.isArray(qRes.items) ? qRes.items : []);
-        setMemory(mRes?.memory ?? null);
-        setAutonomy(aRes?.autonomy ?? null);
-        setContext(contextRes?.context ?? null);
         await refreshProjectChats(id);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -167,6 +200,7 @@ export default function Project() {
         mode: "once",
       });
       setSchedulerMsg(JSON.stringify(r, null, 2));
+      await loadProjectData(id);
     } catch (e) {
       setSchedulerMsg(e instanceof Error ? e.message : String(e));
     } finally {
@@ -187,6 +221,7 @@ export default function Project() {
       );
       setActiveChat(r.chat);
       await refreshProjectChats(id, r.chat.chatId);
+      await loadProjectData(id);
       setChatInput("");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -242,6 +277,23 @@ export default function Project() {
   const storyCount = typeof backlogData?.storyCount === "number" ? backlogData.storyCount : 0;
   const taskCount = typeof backlogData?.taskCount === "number" ? backlogData.taskCount : 0;
   const memoryCount = typeof memoryData?.entryCount === "number" ? memoryData.entryCount : 0;
+  const filteredTasks = tasks.filter((task) => taskFilter === "all" || task.status === taskFilter);
+  const queueReadyCount = queueItems.filter((item) => item.status === "ready").length;
+  const queueRunningCount = queueItems.filter((item) => item.status === "running").length;
+  const taskStatusCounts = tasks.reduce<Record<string, number>>((acc, task) => {
+    const key = task.status || "unknown";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+  const statusFilters = [
+    { key: "all", label: `Todas ${tasks.length}` },
+    ...Object.entries(taskStatusCounts)
+      .sort((a, b) => a[0].localeCompare(b[0], "pt-BR"))
+      .map(([status, count]) => ({
+        key: status,
+        label: `${formatStatusLabel(status)} ${count}`,
+      })),
+  ];
 
   return (
     <div className="page-stack">
@@ -254,19 +306,25 @@ export default function Project() {
             <p className="eyebrow">Projeto</p>
             <h2>{id}</h2>
             <p className="muted">
-              Centro operativo do projeto com contexto vivo, chat e execução.
+              {blocked
+                ? `Projeto bloqueado em ${stage}, com ${queueReadyCount} item(ns) pronto(s) e ${queueRunningCount} em execução.`
+                : queueReadyCount > 0
+                  ? `Projeto em ${stage}, com ${queueReadyCount} item(ns) pronto(s) para execução real e ${queueRunningCount} em execução.`
+                  : `Projeto em ${stage}, sem itens prontos na fila. Task atual: ${currentTask}.`}
             </p>
-            <div className="project-kpis">
-              <span className="badge badge-strong">Status: {projectStatus}</span>
-              <span className="badge">Stage: {stage}</span>
-              <span className="badge">Task atual: {currentTask}</span>
-              <span className="badge">Fila: {queueItems.length}</span>
-            </div>
           </div>
           <div className="hero-actions">
-            <button type="button" onClick={runSchedulerOnce} disabled={running}>
-              {running ? "A correr…" : "Executar scheduler"}
-            </button>
+            {queueReadyCount > 0 && !blocked ? (
+              <button type="button" onClick={runSchedulerOnce} disabled={running}>
+                {running ? "A executar…" : "Executar próximo passo"}
+              </button>
+            ) : (
+              <span className="hero-hint">
+                {blocked
+                  ? "Execução indisponível enquanto o projeto estiver bloqueado."
+                  : "Sem itens ready para executar agora."}
+              </span>
+            )}
           </div>
         </div>
       </section>
@@ -427,6 +485,43 @@ export default function Project() {
           </section>
 
           <section className="section-card">
+            <div className="section-heading">
+              <div>
+                <h3>Tarefas do projeto</h3>
+                <p className="muted">Filtra para encontrar rapidamente o que ainda falta executar.</p>
+              </div>
+            </div>
+            <div className="task-filter-row">
+              {statusFilters.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  className={`filter-chip ${taskFilter === filter.key ? "filter-chip-active" : ""}`}
+                  onClick={() => setTaskFilter(filter.key)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            <div className="list-card">
+              {filteredTasks.slice(0, 8).map((task) => (
+                <article key={task.id} className="task-list-item">
+                  <div className="task-list-head">
+                    <strong>{task.id}</strong>
+                    <span className="badge">{task.status}</span>
+                  </div>
+                  <strong>{task.title}</strong>
+                  <span className="muted small">
+                    {task.type ?? "sem tipo"} · story {task.storyId}
+                  </span>
+                  {task.description ? <span className="muted small">{task.description}</span> : null}
+                </article>
+              ))}
+              {filteredTasks.length === 0 ? <p className="muted">Sem tarefas neste filtro.</p> : null}
+            </div>
+          </section>
+
+          <section className="section-card">
             <h3>Ambiente</h3>
             <div className="overview-list">
               <div className="overview-row">
@@ -532,6 +627,37 @@ export default function Project() {
                         <td>{it.priority ?? "—"}</td>
                         <td>{it.requiresApproval ? "sim" : "não"}</td>
                         <td>{it.reason ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </details>
+          <details className="technical-details">
+            <summary>Tarefas completas</summary>
+            {tasks.length === 0 ? (
+              <p className="muted">Sem tarefas.</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Story</th>
+                      <th>Título</th>
+                      <th>Tipo</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.map((task) => (
+                      <tr key={task.id}>
+                        <td>{task.id}</td>
+                        <td>{task.storyId}</td>
+                        <td>{task.title}</td>
+                        <td>{task.type ?? "—"}</td>
+                        <td>{task.status}</td>
                       </tr>
                     ))}
                   </tbody>
