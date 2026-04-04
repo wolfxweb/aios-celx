@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiGet, apiPost } from "../api";
 
 type ChatSummary = {
@@ -26,6 +26,7 @@ type ChatRecord = ChatSummary & {
 };
 
 export default function Orchestrator() {
+  const [searchParams] = useSearchParams();
   const [summaries, setSummaries] = useState<ChatSummary[]>([]);
   const [activeChat, setActiveChat] = useState<ChatRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ export default function Orchestrator() {
         if (!cancelled) {
           setRouting(route?.config ?? null);
         }
-        await refreshChats();
+        await refreshChats(searchParams.get("chatId") ?? undefined);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -64,7 +65,7 @@ export default function Orchestrator() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [searchParams]);
 
   async function createChat() {
     setBusy(true);

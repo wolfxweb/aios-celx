@@ -70,10 +70,7 @@ export default function SystemHome() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedKpi, setSelectedKpi] = useState<KpiKey | null>(null);
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [newProjectId, setNewProjectId] = useState("");
   const [creatingProject, setCreatingProject] = useState(false);
-  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
 
   async function loadOverview() {
     const response = await apiGet<typeof data>("/workspace/overview");
@@ -103,32 +100,18 @@ export default function SystemHome() {
   }, []);
 
   async function handleCreateProject() {
-    const projectId = newProjectId.trim().toLowerCase();
-    if (!projectId) {
-      setCreateProjectError("Informa um identificador para o projeto.");
-      return;
-    }
-    if (!/^[a-z0-9-_]+$/.test(projectId)) {
-      setCreateProjectError("Usa apenas letras minúsculas, números, hífen e underscore.");
-      return;
-    }
-
     setCreatingProject(true);
-    setCreateProjectError(null);
     try {
       const created = await apiPost<{ chat: { chatId: string } }>("/chats", {
         scope: "global",
-        title: `Criar projeto ${projectId}`,
+        title: "Novo projeto",
       });
       await apiPost(`/chats/${encodeURIComponent(created.chat.chatId)}/messages`, {
-        message: `criar projeto ${projectId}`,
+        message: "iniciar aios-define-scope para novo projeto",
       });
-      await loadOverview();
-      setShowCreateProject(false);
-      setNewProjectId("");
-      navigate(`/app/project/${encodeURIComponent(projectId)}`);
-    } catch (e) {
-      setCreateProjectError(e instanceof Error ? e.message : String(e));
+      navigate(`/app/orchestrator?chatId=${encodeURIComponent(created.chat.chatId)}`);
+    } catch {
+      setError("Não consegui abrir a conversa de definição de escopo.");
     } finally {
       setCreatingProject(false);
     }
@@ -236,8 +219,8 @@ export default function SystemHome() {
             </p>
           </div>
           <div className="hero-actions">
-            <button type="button" onClick={() => setShowCreateProject(true)}>
-              Novo projeto
+            <button type="button" onClick={handleCreateProject} disabled={creatingProject}>
+              {creatingProject ? "A abrir..." : "Novo projeto"}
             </button>
           </div>
         </div>
@@ -410,39 +393,6 @@ export default function SystemHome() {
           <span>Lista operacional dos projetos geridos e respetivo estado.</span>
         </Link>
       </div>
-
-      {showCreateProject && (
-        <div className="kpi-overlay" role="dialog" aria-modal="true" aria-labelledby="create-project-title">
-          <div className="kpi-overlay-backdrop" onClick={() => setShowCreateProject(false)} />
-          <section className="section-card kpi-dialog">
-            <div className="section-heading">
-              <div>
-                <h3 id="create-project-title">Novo projeto</h3>
-                <p className="muted">Cria um projeto novo e abre a área dele em seguida.</p>
-              </div>
-              <button type="button" className="ghost-button" onClick={() => setShowCreateProject(false)}>
-                Fechar
-              </button>
-            </div>
-            <div className="page-stack">
-              <label className="field">
-                <span>Identificador do projeto</span>
-                <input
-                  value={newProjectId}
-                  onChange={(event) => setNewProjectId(event.target.value)}
-                  placeholder="ex.: portal-cliente"
-                />
-              </label>
-              {createProjectError ? <p className="error">{createProjectError}</p> : null}
-              <div className="chat-actions">
-                <button type="button" onClick={handleCreateProject} disabled={creatingProject}>
-                  {creatingProject ? "A criar..." : "Criar projeto"}
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      )}
     </div>
   );
 }
