@@ -47,6 +47,10 @@ export async function saveProjectConfig(
   const configPath = join(projectPath(projectsRoot, projectId), ".aios", "config.yaml");
   const normalized = normalizeProjectConfig(config);
   await writeYaml(configPath, normalized);
+
+  const monorepoRoot = resolveMonorepoRoot(dirname(projectsRoot));
+  const record = projectRecordFromConfig(projectId, normalized);
+  await upsertProjectRecord(monorepoRoot, record, "saveProjectConfig:auto-sync");
 }
 
 /** Directories under `projects/` that contain `.aios/config.yaml`. */

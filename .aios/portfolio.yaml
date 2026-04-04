@@ -5,9 +5,10 @@ portfolio:
   name: Default portfolio
   description: Executive view over managed projects (Bloco 5.3).
   projects:
-    - bloco44-smoke
-    - e2e-demo
-    - git-smoke
+    - amigo-secreto
+    - assistencia-tickets
+    - crm-comercial
+    - forgeos
   priorities: []
   groups: {}
   tags: []

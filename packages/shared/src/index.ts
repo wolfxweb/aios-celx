@@ -28,6 +28,20 @@ export const GitProjectConfigSchema = z.object({
 
 export type GitProjectConfig = z.infer<typeof GitProjectConfigSchema>;
 
+export const ProjectRuntimeCommandSchema = z.object({
+  command: z.string(),
+  cwd: z.string().optional(),
+});
+
+export type ProjectRuntimeCommand = z.infer<typeof ProjectRuntimeCommandSchema>;
+
+export const ProjectRuntimeConfigSchema = z.object({
+  web: ProjectRuntimeCommandSchema.optional(),
+  api: ProjectRuntimeCommandSchema.optional(),
+});
+
+export type ProjectRuntimeConfig = z.infer<typeof ProjectRuntimeConfigSchema>;
+
 // --- Bloco 5.2: registry & project metadata ---
 
 export const ProjectLifecycleStatusSchema = z.enum(["active", "archived", "paused"]);
@@ -215,6 +229,8 @@ export const ProjectConfigSchema = z.object({
   engines: z.record(z.string(), z.string()).optional(),
   /** Local Git integration (Bloco 4.1). */
   git: GitProjectConfigSchema.optional(),
+  /** Runtime commands for opening the project in the browser. */
+  runtime: ProjectRuntimeConfigSchema.optional(),
   /** Bloco 6.3 — governed automation limits (partial in YAML; merged on load). */
   autonomy: AutonomyPolicyPartialSchema.optional(),
   /**
@@ -263,6 +279,7 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
     workflow: config.workflow ?? DEFAULT_WORKFLOW_ID,
     engines,
     git,
+    runtime: config.runtime,
     autonomy: mergeAutonomyPolicy(config.autonomy),
     gateApproval: config.gateApproval ?? "auto",
     executionMode: config.executionMode ?? "manual",

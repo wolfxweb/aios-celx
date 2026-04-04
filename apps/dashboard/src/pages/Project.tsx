@@ -77,6 +77,8 @@ type ProjectRuntimeStatus = {
   api: RuntimeSnapshot;
 };
 
+type RuntimeTarget = "web" | "api" | "all";
+
 function toRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -113,6 +115,9 @@ function formatStatusLabel(status: string): string {
     ready: "Prontas",
     review: "Em revisão",
     qa: "QA",
+    active: "Em andamento",
+    archived: "Finalizado",
+    paused: "Pausado",
   };
   return map[normalized] ?? status.replace(/_/g, " ");
 }
@@ -349,14 +354,20 @@ export default function Project() {
     }
   }
 
-  async function startProjectRuntime() {
+  async function startProjectRuntime(target: RuntimeTarget = "all") {
     setRuntimeBusy(true);
     try {
       const next = await apiPost<ProjectRuntimeStatus>(`/projects/${encodeURIComponent(id)}/runtime/start`, {
-        target: "all",
+        target,
       });
       setRuntime(next);
-      setSchedulerMsg("Projeto iniciado. Usa os botões de abrir para ver no navegador.");
+      setSchedulerMsg(
+        target === "all"
+          ? "Projeto iniciado. Usa os botões de abrir para ver no navegador."
+          : target === "web"
+            ? "Frontend iniciado. Já podes abrir no navegador."
+            : "API iniciada. Já podes abrir o endpoint do projeto.",
+      );
     } catch (e) {
       setSchedulerMsg(e instanceof Error ? e.message : String(e));
     } finally {
@@ -364,14 +375,20 @@ export default function Project() {
     }
   }
 
-  async function stopProjectRuntime() {
+  async function stopProjectRuntime(target: RuntimeTarget = "all") {
     setRuntimeBusy(true);
     try {
       const next = await apiPost<ProjectRuntimeStatus>(`/projects/${encodeURIComponent(id)}/runtime/stop`, {
-        target: "all",
+        target,
       });
       setRuntime(next);
-      setSchedulerMsg("Processos do projeto parados.");
+      setSchedulerMsg(
+        target === "all"
+          ? "Processos do projeto parados."
+          : target === "web"
+            ? "Frontend do projeto parado."
+            : "API do projeto parada.",
+      );
     } catch (e) {
       setSchedulerMsg(e instanceof Error ? e.message : String(e));
     } finally {
@@ -383,7 +400,8 @@ export default function Project() {
     if (!url) {
       return;
     }
-    window.open(url, "_blank", "noopener,noreferrer");
+    const updatedUrl = url.replace("127.0.0.1", window.location.hostname);
+    window.open(updatedUrl, "_blank", "noopener,noreferrer");
   }
 
   if (!id) return <p>ID inválido.</p>;
@@ -586,7 +604,7 @@ export default function Project() {
             <div className="overview-list">
               <div className="overview-row">
                 <span className="muted">Status</span>
-                <strong>{projectStatus}</strong>
+                <strong>{formatStatusLabel(projectStatus)}</strong>
               </div>
               <div className="overview-row">
                 <span className="muted">Stage</span>
@@ -642,11 +660,27 @@ export default function Project() {
             </div>
           </div>
           <div className="runtime-actions">
-            <button type="button" onClick={startProjectRuntime} disabled={runtimeBusy}>
+            <button type="button" onClick={() => startProjectRuntime("all")} disabled={runtimeBusy}>
               {runtimeBusy ? "A iniciar…" : "Executar projeto"}
             </button>
-            <button type="button" onClick={stopProjectRuntime} disabled={runtimeBusy}>
+            <button type="button" onClick={() => stopProjectRuntime("all")} disabled={runtimeBusy}>
               Parar
+            </button>
+          </div>
+          <div className="runtime-actions">
+            <button
+              type="button"
+              onClick={() => startProjectRuntime("web")}
+              disabled={runtimeBusy || runtime?.web.status === "running"}
+            >
+              {runtime?.web.status === "running" ? "Frontend ativo" : "Iniciar frontend"}
+            </button>
+            <button
+              type="button"
+              onClick={() => startProjectRuntime("api")}
+              disabled={runtimeBusy || runtime?.api.status === "running"}
+            >
+              {runtime?.api.status === "running" ? "API ativa" : "Iniciar API"}
             </button>
           </div>
           <div className="runtime-actions">
@@ -663,6 +697,22 @@ export default function Project() {
               disabled={!runtime?.api.url}
             >
               Abrir API
+            </button>
+          </div>
+          <div className="runtime-actions">
+            <button
+              type="button"
+              onClick={() => stopProjectRuntime("web")}
+              disabled={runtimeBusy || runtime?.web.status !== "running"}
+            >
+              Parar frontend
+            </button>
+            <button
+              type="button"
+              onClick={() => stopProjectRuntime("api")}
+              disabled={runtimeBusy || runtime?.api.status !== "running"}
+            >
+              Parar API
             </button>
           </div>
         </section>

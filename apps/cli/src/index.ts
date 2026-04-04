@@ -38,6 +38,7 @@ import {
   loadProjectsRegistry,
   projectExists,
   projectPath,
+  saveProjectConfig,
   syncProjectsRegistry,
 } from "@aios-celx/project-manager";
 import { readState, writeState } from "@aios-celx/state-manager";
@@ -101,6 +102,14 @@ async function maybeAutoAdvanceWorkflowGates(
   if (advancedGates.length > 0) {
     await writeState(projectsRoot, projectId, next);
   }
+  await checkAndArchiveProjectIfComplete(
+    projectsRoot,
+    projectId,
+    projRoot,
+    workflow,
+    next,
+    projectConfig,
+  );
   return { state: next, autoAdvancedGates: advancedGates };
 }
 
@@ -111,6 +120,24 @@ function resolveProjectsRoot(): string {
   }
   const monorepoRoot = resolveMonorepoRoot(process.cwd());
   return join(monorepoRoot, "projects");
+}
+
+async function checkAndArchiveProjectIfComplete(
+  projectsRoot: string,
+  projectId: string,
+  projRoot: string,
+  workflow: WorkflowDefinition,
+  state: ProjectState,
+  config: ProjectConfig,
+): Promise<ProjectConfig> {
+  const action = await resolveNextAction(projRoot, workflow, state);
+  if (action.type === "workflow-complete" && config.status !== "archived") {
+    const updated = { ...config, status: "archived" as const };
+    await saveProjectConfig(projectsRoot, projectId, updated);
+    console.log(`\n🎉 Project "${projectId}" workflow is complete! Archiving project.`);
+    return updated;
+  }
+  return config;
 }
 
 const program = new Command();
@@ -132,7 +159,9 @@ program
   .action(async (projectId: string, opts: { blueprint: string }) => {
     const root = resolveProjectsRoot();
     await createProject({ projectsRoot: root, projectId, blueprintId: opts.blueprint });
-    console.log(`Created project "${projectId}" at ${join(root, projectId)} (blueprint: ${opts.blueprint})`);
+    const mono = resolveMonorepoRoot(dirname(root));
+    await addProjectToPortfolio(root, projectId, mono);
+    console.log(`Created project "${projectId}" at ${join(root, projectId)} (blueprint: ${opts.blueprint}) and added to portfolio.`);
   });
 
 program
@@ -213,7 +242,11 @@ program
       projectsRoot: root,
       prune: Boolean(opts.prune),
     });
-    console.log(JSON.stringify({ ok: true, monorepoRoot: mono, ...result }, null, 2));
+
+    for (const projectId of result.added) {
+      await addProjectToPortfolio(root, projectId, mono);
+    }
+    console.log(JSON.stringify({ ok: true, monorepoRoot: mono, ...result, portfolioAdded: result.added }, null, 2));
   });
 
 program
@@ -559,6 +592,8 @@ program
     const next = advanceAfterGateApproval(workflow, state, gateId);
     await writeState(root, opts.project, next);
     console.log(JSON.stringify({ approved: gateId, state: next }, null, 2));
+
+    await checkAndArchiveProjectIfComplete(root, opts.project, projRoot, workflow, next, projectConfig);
   });
 
 program

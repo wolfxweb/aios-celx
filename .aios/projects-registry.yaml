@@ -1,103 +1,13 @@
 version: 1
-updatedAt: 2026-04-04T00:24:45.317Z
+updatedAt: 2026-04-04T16:08:59.106Z
 projects:
-  - id: bloc3-smoke
-    name: SaaS webapp
-    path: projects/bloc3-smoke
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:35:52.655Z
-    updatedAt: 2026-04-01T00:00:14.194Z
-    priority: medium
-    tags: []
-  - id: bloco44-smoke
-    name: SaaS webapp
-    path: projects/bloco44-smoke
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:49:47.150Z
-    updatedAt: 2026-04-01T00:00:14.197Z
-    priority: medium
-    tags: []
-  - id: e2e-demo
-    name: SaaS webapp
-    path: projects/e2e-demo
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T22:46:26.231Z
-    updatedAt: 2026-04-01T00:00:14.198Z
-    priority: medium
-    tags: []
-  - id: eng-b42
-    name: SaaS webapp
-    path: projects/eng-b42
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:44:37.186Z
-    updatedAt: 2026-04-01T00:00:14.199Z
-    priority: medium
-    tags: []
-  - id: eng-b43
-    name: SaaS webapp
-    path: projects/eng-b43
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:45:28.671Z
-    updatedAt: 2026-04-01T00:00:14.199Z
-    priority: medium
-    tags: []
-  - id: git-smoke
-    name: SaaS webapp
-    path: projects/git-smoke
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:40:43.690Z
-    updatedAt: 2026-04-01T00:00:14.200Z
-    priority: medium
-    tags: []
-  - id: git-smoke2
-    name: SaaS webapp
-    path: projects/git-smoke2
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-03-31T23:41:16.900Z
-    updatedAt: 2026-04-01T00:00:14.201Z
-    priority: medium
-    tags: []
-  - id: appCelx
-    name: SaaS webapp
-    path: projects/appCelx
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-04-01T01:10:40.869Z
-    updatedAt: 2026-04-01T01:10:40.882Z
-    priority: medium
-    tags: []
-  - id: aios-institutional-site
-    name: SaaS webapp
-    path: projects/aios-institutional-site
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-04-01T22:08:32.647Z
-    updatedAt: 2026-04-01T22:08:32.711Z
-    priority: medium
-    tags: []
-  - id: wolfx
-    name: SaaS webapp
-    path: projects/wolfx
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-04-01T22:41:23.452Z
-    updatedAt: 2026-04-01T22:41:23.492Z
-    priority: medium
-    tags: []
   - id: assistencia-tickets
     name: SaaS webapp
     path: projects/assistencia-tickets
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-01T23:04:33.723Z
-    updatedAt: 2026-04-04T00:24:45.310Z
+    updatedAt: 2026-04-04T16:05:19.301Z
     priority: medium
     tags: []
   - id: crm-comercial
@@ -106,16 +16,7 @@ projects:
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-02T22:51:03.141Z
-    updatedAt: 2026-04-04T00:24:45.313Z
-    priority: medium
-    tags: []
-  - id: amigo-secreto-online
-    name: SaaS webapp
-    path: projects/amigo-secreto-online
-    blueprint: saas-webapp
-    status: active
-    createdAt: 2026-04-03T19:45:19.608Z
-    updatedAt: 2026-04-03T19:45:19.634Z
+    updatedAt: 2026-04-04T16:05:19.303Z
     priority: medium
     tags: []
   - id: amigo-secreto
@@ -124,16 +25,16 @@ projects:
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-03T20:33:47.218Z
-    updatedAt: 2026-04-04T00:24:45.306Z
+    updatedAt: 2026-04-04T16:05:19.298Z
     priority: medium
     tags: []
   - id: forgeos
     name: Forgeos
     path: projects/forgeos
     blueprint: saas-webapp
-    status: active
+    status: archived
     createdAt: 2026-04-04T00:24:45.224Z
-    updatedAt: 2026-04-04T00:24:45.316Z
+    updatedAt: 2026-04-04T16:08:59.102Z
     priority: medium
     tags: []
 
