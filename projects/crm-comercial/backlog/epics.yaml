@@ -1,0 +1,11 @@
+epics:
+  - id: EPIC-1
+    title: Fundamentação do produto
+    goal: Estabelecer PRD, estrutura de backlog e primeira fatia de entrega.
+    status: done
+
+  - id: EPIC-2
+    title: Fundação técnica MVP — API e cliente web
+    goal: Repositório runnable com API FastAPI (JWT, SQLite) e SPA Vue+Vuetify
+      (Home pública e Login) alinhados a architecture.md e api-contracts.md.
+    status: in_progress

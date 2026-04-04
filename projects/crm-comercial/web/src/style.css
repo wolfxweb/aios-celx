@@ -1,0 +1,14 @@
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+/* Linha destacada ao abrir lista a partir da busca global (?highlight=) */
+.search-highlight-row td {
+  background-color: rgba(var(--v-theme-primary), 0.12);
+}

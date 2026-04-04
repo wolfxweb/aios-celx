@@ -1,0 +1,7 @@
+epics:
+  - id: EPIC-1
+    title: MVP de Forgeos
+    goal: ForgeOS is a platform that helps developers, founders, and product teams
+      build software using AI in a structured, organized, and scalable way.
+    status: todo
+

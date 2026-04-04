@@ -1,0 +1,72 @@
+tasks:
+  - id: TASK-1
+    storyId: STORY-1
+    title: Completar PRD e YAML de backlog
+    description: Garantir que backlog YAML valida e contém pelo menos uma task
+      executável para o engenheiro (mock run:task).
+    type: implementation
+    status: done
+    files:
+      - backlog/tasks.yaml
+      - docs/prd.md
+    acceptanceCriteria:
+      - tasks.yaml faz parse com o schema de task
+      - Existe pelo menos uma task com id e storyId
+    notes: Usada pelo fluxo engineer (Bloco 4.2) em modo mock.
+  - id: TASK-2
+    storyId: STORY-2
+    title: Scaffold API FastAPI — SQLite, Alembic, JWT, login e /me
+    description: Criar pacote Python sob projects/crm-comercial/api com app FastAPI
+      versionada em /api/v1, modelo User, hash de senha, emissão e validação JWT
+      (access), rotas POST /auth/login e GET /me; SQLite via env; Alembic com
+      primeira migração; pytest + httpx AsyncClient em testes de integração
+      conforme plano-testes-api.md.
+    type: implementation
+    status: done
+    files:
+      - api/
+      - docs/architecture.md
+      - docs/api-contracts.md
+    acceptanceCriteria:
+      - POST /api/v1/auth/login retorna accessToken e user quando credenciais
+        válidas
+      - GET /api/v1/me exige Authorization Bearer e devolve perfil
+      - Testes pytest passam (mínimo login 200, /me 401 sem token)
+      - README ou docs com comandos uvicorn e pytest no diretório da API
+    notes: Stack definida em decision-log (FastAPI, JWT, SQLite).
+  - id: TASK-3
+    storyId: STORY-3
+    title: Scaffold SPA Vue 3 + Vuetify — Home e Login
+    description: Criar projects/crm-comercial/web com Vite, Vue 3, Vuetify 3, Vue
+      Router (rotas / e /login), Pinia para token e preferência de tema, cliente
+      HTTP (axios) para VITE_API_BASE_URL + /api/v1; página Home alinhada a
+      especificacao-funcional-crm-telas TELA 0; Login alinhado a TELA 1.
+    type: implementation
+    status: done
+    files:
+      - web/
+      - docs/especificacao-funcional-crm-telas.md
+    acceptanceCriteria:
+      - pnpm/npm run dev serve a SPA; / mostra Home pública sem sidebar CRM
+      - /login permite submeter email+senha e guarda JWT em Pinia (e storage se
+        definido)
+      - Toggle tema claro/escuro aplicado via Vuetify
+    notes: Integrar com API da TASK-2 quando disponível (mesmo origin ou CORS).
+  - id: TASK-4
+    storyId: STORY-2
+    title: Testes API — auth e contrato de erro
+    description: |
+      Completar cobertura mínima do plano-testes-api.md para o módulo auth
+      (JWT inválido ou expirado, login com credenciais erradas, envelope de erro
+      JSON conforme api-contracts). Fixtures com BD SQLite em memória.
+    type: implementation
+    status: done
+    files:
+      - api/tests/
+      - docs/plano-testes-api.md
+    acceptanceCriteria:
+      - pytest cobre pelo menos os casos JWT-01 a JWT-03 e login 401
+      - Documentação de como correr testes no README da API
+    notes: Depende da base criada em TASK-2; pode ser feita em paralelo após TASK-2
+      estar mergeada.
+

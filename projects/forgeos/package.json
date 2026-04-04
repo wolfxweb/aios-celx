@@ -1,0 +1,11 @@
+{
+  "name": "forgeos",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev:web": "python3 -m http.server ${WEB_PORT:-4174} --directory web",
+    "dev:api": "PORT=${API_PORT:-4175} node api/server.js",
+    "test": "node tests/smoke.test.js"
+  }
+}

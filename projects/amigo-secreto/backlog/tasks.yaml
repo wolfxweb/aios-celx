@@ -1,0 +1,60 @@
+tasks:
+  - id: TASK-1
+    storyId: STORY-1
+    title: Criar Model de Participantes
+    description: Definir estrutura de dados para usuários do sorteio.
+    type: implementation
+    status: done
+    files:
+      - src/models/participant.ts
+  - id: TASK-2
+    storyId: STORY-1
+    title: Persistência de Participantes
+    description: Implementar repositório para salvar usuários.
+    type: implementation
+    status: done
+    files:
+      - src/repositories/participant.ts
+  - id: TASK-3
+    storyId: STORY-2
+    title: Regras de Restrição
+    description: Criar lógica para adicionar nomes que um participante não pode tirar.
+    type: implementation
+    status: done
+    files:
+      - src/services/restriction.ts
+  - id: TASK-4
+    storyId: STORY-3
+    title: Implementar Algoritmo de Sorteio
+    description: "Criar motor de embaralhamento que considere as restrições:
+      Fisher-Yates com backtracking."
+    type: implementation
+    status: done
+    files:
+      - src/services/draw-shuffler.ts
+  - id: TASK-5
+    storyId: STORY-3
+    title: Testes de Stress e Validação
+    description: Garantir que o sorteio nunca falha silenciosamente se as restrições
+      forem impossíveis.
+    type: test
+    status: done
+    files:
+      - tests/draw.spec.ts
+  - id: TASK-6
+    storyId: STORY-4
+    title: Backend API (Fastify)
+    description: Criar servidor de API que integre os serviços de participante e sorteio.
+    type: implementation
+    status: done
+    files:
+      - api/server.ts
+  - id: TASK-7
+    storyId: STORY-4
+    title: Frontend Web (Vite + React)
+    description: Implementar a interface de gestão e visualização do sorteio.
+    type: implementation
+    status: done
+    files:
+      - web/src/App.tsx
+

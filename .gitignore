@@ -7,10 +7,10 @@ dist/
 .env.*
 pnpm-debug.log*
 
-# Local planning / prompts (optional; not versioned)
-docs/**
-!docs/agentes/
-!docs/agentes/**
+# Local planning / prompts (optional; not versioned) — só em /docs na raiz
+/docs/**
+!/docs/agentes/
+!/docs/agentes/**
 
 # Ecosystem runtime state (local)
 .aios/global-memory.json
@@ -19,6 +19,10 @@ docs/**
 !.agents/
 !.agents/**
 
-# Managed project trees (keep directory with .gitkeep only)
-projects/*
-!projects/.gitkeep
+# Projetos geridos em projects/<id>/ (código e docs versionados)
+projects/**/node_modules/
+projects/**/vendor/
+projects/**/.aios/state.json
+projects/**/.aios/queue.json
+projects/**/.aios/memory.json
+projects/**/.aios/logs/

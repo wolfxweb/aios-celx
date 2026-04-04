@@ -1,0 +1,98 @@
+tasks:
+  - id: TASK-1
+    storyId: STORY-1
+    title: Completar PRD e YAML de backlog
+    description: Garantir que backlog YAML valida e contém pelo menos uma task
+      executável para o engenheiro (mock run:task).
+    type: implementation
+    status: todo
+    files:
+      - backlog/tasks.yaml
+      - docs/prd.md
+    acceptanceCriteria:
+      - tasks.yaml faz parse com o schema de task
+      - Existe pelo menos uma task com id e storyId
+    notes: Usada pelo fluxo engineer (Bloco 4.2) em modo mock.
+
+  - id: TASK-2
+    storyId: STORY-1
+    title: MVP Laravel em projects/assistencia-tickets/web
+    description: >-
+      App Laravel 11 com SQLite, Blade+Alpine, Sanctum, CRUD clientes/tickets,
+      API /api/v1/tickets e testes PHPUnit (Feature).
+    type: implementation
+    status: done
+    files:
+      - web/README.md
+      - web/routes/web.php
+      - web/routes/api.php
+      - web/database/migrations
+      - web/tests/Feature
+    acceptanceCriteria:
+      - composer install e migrate --seed executam com PHP 8.2+
+      - Login web e fluxo básico de tickets
+      - GET/POST /api/v1/tickets com Sanctum
+      - php artisan test passa
+    notes: Código em web/; correr comandos a partir dessa pasta.
+
+  - id: TASK-3
+    storyId: STORY-1
+    title: CRUD contactos e equipamentos + tickets com selects por cliente
+    description: >-
+      Rotas aninhadas a clients, UI Blade, integração em tickets com Alpine,
+      testes Feature para CRUD e scoped binding.
+    type: implementation
+    status: done
+    files:
+      - web/app/Http/Controllers/ContactController.php
+      - web/app/Http/Controllers/EquipmentController.php
+      - web/resources/views/contacts
+      - web/resources/views/equipments
+      - web/tests/Feature/ContactEquipmentTest.php
+    acceptanceCriteria:
+      - Criar/editar/remover contacto e equipamento por cliente
+      - Ticket create/edit filtra contacto e equipamento pelo cliente
+    notes: —
+
+  - id: TASK-4
+    storyId: STORY-1
+    title: Roadmap MVP — SLA, horas, anexos, perfis, relatórios, utilizadores
+    description: >-
+      config/sla.php, SlaService, prazos na criação/alteração de prioridade;
+      apontamento de horas e anexos no ticket; encerramento com validação;
+      TicketPolicy + filtro técnico; CRUD admin de utilizadores; relatórios e
+      página de leitura SLA; testes Feature.
+    type: implementation
+    status: done
+    files:
+      - web/config/sla.php
+      - web/app/Services/SlaService.php
+      - web/app/Policies/TicketPolicy.php
+      - web/app/Http/Middleware/EnsureUserRole.php
+      - web/database/migrations/2025_04_03_000001_add_sla_and_attachments.php
+    acceptanceCriteria:
+      - SLA calculado ao criar ticket (web e API)
+      - Horas e anexos no ticket com permissões
+      - Relatórios e utilizadores (admin) funcionais
+    notes: Portal cliente e contratos ficam para fase seguinte.
+
+  - id: TASK-5
+    storyId: STORY-2
+    title: Portal do cliente — área /portal (lista, detalhe, comentários públicos)
+    description: >-
+      Perfil client + client_id em users; rotas /portal isoladas do backoffice
+      (middleware staff); lista e detalhe de tickets do cliente; comentários só
+      públicos; API filtrada para cliente; utilizador demo no seed.
+    type: implementation
+    status: done
+    files:
+      - web/database/migrations/2025_04_04_000001_add_client_id_to_users_table.php
+      - web/app/Http/Controllers/PortalController.php
+      - web/app/Http/Middleware/EnsureStaffMember.php
+      - web/tests/Feature/PortalTest.php
+    acceptanceCriteria:
+      - Cliente autenticado vê só tickets do seu client_id
+      - Staff não acede a /portal por necessidade; cliente redireccionado do backoffice
+      - Comentário portal cria interação is_internal=false
+    notes: Contratos / abertura de ticket pelo portal — próxima fatia.
+

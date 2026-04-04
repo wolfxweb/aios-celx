@@ -1,0 +1,23 @@
+stories:
+  - id: STORY-1
+    epicId: EPIC-1
+    title: Definir modelo principal do domínio
+    acceptance:
+      - Entidades principais identificadas
+      - Fluxo principal descrito no domínio
+    status: done
+  - id: STORY-2
+    epicId: EPIC-1
+    title: Implementar backend/API inicial
+    acceptance:
+      - Contratos principais cobertos
+      - Fluxos básicos de leitura e escrita definidos
+    status: done
+  - id: STORY-3
+    epicId: EPIC-1
+    title: Construir interface inicial
+    acceptance:
+      - Fluxo principal acessível no frontend
+      - Estados básicos de sucesso e erro previstos
+    status: done
+

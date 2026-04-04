@@ -1,0 +1,34 @@
+projectId: assistencia-tickets
+name: SaaS webapp
+blueprint: saas-webapp
+createdAt: 2026-04-01T23:04:33.723Z
+workflow: default-software-delivery
+status: active
+priority: medium
+tags: []
+engines:
+  default: mock-engine
+  requirements-analyst: mock-engine
+  product-manager: mock-engine
+  software-architect: mock-engine
+  delivery-manager: mock-engine
+git:
+  enabled: true
+  autoInit: true
+  defaultBranchPrefix: aios
+  commitPrefix: "[aios-celx]"
+autonomy:
+  enabled: true
+  autoRunTask: true
+  autoRunQA: true
+  autoRunStory: false
+  allowLoopExecution: true
+  maxAutoSteps: 10
+  haltOnBlockedTask: true
+  haltOnApprovalRequired: true
+  haltOnArchitectureDecision: true
+  haltOnScopeChange: true
+  haltOnFailure: false
+  requireApprovalFor: []
+  notes: ""
+

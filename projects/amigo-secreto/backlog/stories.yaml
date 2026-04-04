@@ -1,0 +1,18 @@
+stories:
+  - id: STORY-1
+    epicId: EPIC-1
+    title: Cadastro de Participantes
+    status: done
+  - id: STORY-2
+    epicId: EPIC-1
+    title: Definição de Restrições entre Participantes
+    status: done
+  - id: STORY-3
+    epicId: EPIC-2
+    title: Execução e Validação do Sorteio
+    status: done
+  - id: STORY-4
+    epicId: EPIC-3
+    title: Notificação via Log ou Email
+    status: done
+

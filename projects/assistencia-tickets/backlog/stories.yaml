@@ -1,0 +1,18 @@
+stories:
+  - id: STORY-1
+    epicId: EPIC-1
+    title: Publicar PRD e backlog inicial
+    acceptance:
+      - PRD contém resumo, objetivos e requisitos traçáveis ao discovery
+      - Ficheiros backlog (epics, stories, tasks) existem e validam contra o
+        schema
+    status: draft
+
+  - id: STORY-2
+    epicId: EPIC-V2-PORTAL
+    title: Portal do cliente (fases)
+    acceptance:
+      - Utilizador cliente vê pedidos da sua empresa e troca mensagens públicas
+      - Backoffice permanece acessível só a perfis staff
+    status: draft
+

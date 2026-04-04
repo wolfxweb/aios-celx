@@ -1,0 +1,30 @@
+stories:
+  - id: STORY-1
+    epicId: EPIC-1
+    title: Publicar PRD e backlog inicial
+    acceptance:
+      - PRD contém resumo, objetivos e requisitos traçáveis ao discovery
+      - Ficheiros backlog (epics, stories, tasks) existem e validam contra o
+        schema
+    status: done
+  - id: STORY-2
+    epicId: EPIC-2
+    title: Backend — API FastAPI com JWT e SQLite
+    acceptance:
+      - Projeto Python em `projects/crm-comercial/api/` (ou caminho acordado)
+        com FastAPI, SQLAlchemy 2, Alembic, SQLite
+      - Endpoints mínimos conforme api-contracts.md — POST /api/v1/auth/login,
+        GET /api/v1/me com Bearer JWT
+      - Testes pytest (unitários JWT + integração com BD de teste) alinhados a
+        plano-testes-api.md
+    status: done
+  - id: STORY-3
+    epicId: EPIC-2
+    title: Frontend — Vue 3, Vuetify e rotas públicas
+    acceptance:
+      - SPA em `projects/crm-comercial/web/` com Vite, Vue Router, Pinia
+      - Rota `/` — Home pública (marketing) e `/login` — formulário que chama a
+        API
+      - Tema claro/escuro persistido (localStorage ou /me quando autenticado)
+    status: done
+

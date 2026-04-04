@@ -1,0 +1,10 @@
+epics:
+  - id: EPIC-1
+    title: Gestão de Participantes e Restrições
+    status: todo
+  - id: EPIC-2
+    title: Motor de Sorteio e Regras de Negócio
+    status: todo
+  - id: EPIC-3
+    title: Notificações de Resultados
+    status: todo

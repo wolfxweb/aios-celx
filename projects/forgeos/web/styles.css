@@ -1,0 +1,77 @@
+:root {
+  color-scheme: dark;
+  --bg: #08131d;
+  --panel: rgba(15, 29, 43, 0.86);
+  --border: rgba(122, 158, 196, 0.22);
+  --text: #eef5fb;
+  --muted: #97acbf;
+  --accent: #58d5be;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Sora", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(88, 213, 190, 0.16), transparent 24rem),
+    linear-gradient(180deg, #08131d 0%, #0d1c2a 100%);
+  color: var(--text);
+}
+
+.app-shell {
+  width: min(1120px, calc(100vw - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hero,
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--panel);
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.hero h1,
+.panel h2 {
+  margin: 0 0 0.75rem;
+}
+
+.lead,
+.panel p,
+ol {
+  margin: 0;
+  color: var(--muted);
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+}

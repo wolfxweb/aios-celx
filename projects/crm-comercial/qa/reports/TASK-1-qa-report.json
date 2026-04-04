@@ -1,0 +1,18 @@
+{
+  "taskId": "TASK-1",
+  "storyId": "STORY-1",
+  "status": "approved",
+  "findings": [],
+  "summary": {
+    "criteriaChecked": [
+      "architecture.md present / readable",
+      "api-contracts.md present / readable",
+      "Implementation report exists",
+      "Acceptance criteria reviewed"
+    ],
+    "passedCount": 4,
+    "failedCount": 0
+  },
+  "recommendation": "Proceed to merge or next task.",
+  "generatedAt": "2026-04-02T23:15:07.727Z"
+}

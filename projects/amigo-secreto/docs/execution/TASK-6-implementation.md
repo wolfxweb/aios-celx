@@ -1,0 +1,214 @@
+# Implementation report — TASK-6
+
+## Task
+
+| Field | Value |
+|-------|--------|
+| **ID** | TASK-6 |
+| **Story** | STORY-4 |
+| **Title** | Backend API (Fastify) |
+| **Type** | implementation |
+| **Status** | done (after mock run) |
+
+### Description
+
+Criar servidor de API que integre os serviços de participante e sorteio.
+
+### Target files (from task)
+
+- `api/server.ts`
+
+### Acceptance criteria
+
+- _(none)_
+
+### Notes
+
+(none)
+
+## Context read
+
+- **Story** (STORY-4): Notificação via Log ou Email
+- **Architecture** (`docs/architecture.md`): excerpt below
+- **API contracts** (`docs/api-contracts.md`): excerpt below
+- **Backlog tasks** (`backlog/tasks.yaml`): snapshot excerpt
+
+### Architecture excerpt
+
+```
+# Architecture — Amigo Secreto
+
+## Context
+Aplicação simples em TypeScript organizada por comandos ou módulos de serviço.
+
+## Components
+
+
+### Participantes
+Gere o cadastro e a persistência dos participantes.
+
+### Sorteio (Shuffler)
+Implementa o algoritmo de sorteio Fisher-Yates modificado com verificações de restrições e auto-sorteio.
+
+### Notificações
+Serviço para gerir o aviso aos participantes.
+
+
+_Last updated: 2026-04-03._
+
+```
+
+### API contracts excerpt
+
+```
+# API Contracts — Amigo Secreto
+
+## Entities
+
+### Participant
+
+```typescript
+interface Participant {
+  id: string; // UUID
+  name: string; // Full name
+  email: string; // Unique email
+}
+```
+
+### Restriction
+
+```typescript
+interface Restriction {
+  participantId: string;
+  cannotDrawId: string;
+}
+```
+
+### DrawResult
+
+```typescript
+interface DrawResult {
+  participantId: string;
+  drawnFriendId: string;
+}
+```
+
+## Endpoints (JSON API)
+
+- `GET /api/participants`: Lista todos os participantes.
+- `POST /api/participants`: `{ "name": string, "email": string }` -> Cria participante.
+- `POST /api/restrictions`: `{ "participantId": string, "cannotDrawId": string }` -> Cria restrição.
+- `POST /api/draw`: Realiza o sorteio e devolve os pares.
+
+## Conventions
+```
+
+### Tasks YAML excerpt
+
+```json
+{
+  "tasks": [
+    {
+      "id": "TASK-1",
+      "storyId": "STORY-1",
+      "title": "Criar Model de Participantes",
+      "description": "Definir estrutura de dados para usuários do sorteio.",
+      "type": "implementation",
+      "status": "done",
+      "files": [
+        "src/models/participant.ts"
+      ]
+    },
+    {
+      "id": "TASK-2",
+      "storyId": "STORY-1",
+      "title": "Persistência de Participantes",
+      "description": "Implementar repositório para salvar usuários.",
+      "type": "implementation",
+      "status": "done",
+      "files": [
+        "src/repositories/participant.ts"
+      ]
+    },
+    {
+      "id": "TASK-3",
+      "storyId": "STORY-2",
+      "title": "Regras de Restrição",
+      "description": "Criar lógica para adicionar nomes que um participante não pode tirar.",
+      "type": "implementation",
+      "status": "done",
+      "files": [
+        "src/services/restriction.ts"
+      ]
+    },
+    {
+      "id": "TASK-4",
+      "storyId": "STORY-3",
+      "title": "Implementar Algoritmo de Sorteio",
+      "description": "Criar motor de embaralhamento que considere as restrições: Fisher-Yates com backtracking.",
+      "type": "implementation",
+      "status": "done",
+      "files": [
+        "src/services/draw-shuffler.ts"
+      ]
+    },
+    {
+      "id": "TASK-5",
+      "storyId": "STORY-3",
+      "title": "Testes de Stress e Validação",
+      "description": "Garantir que o sorteio nunca falha silenciosamente se as restrições forem impossíveis.",
+      "type": "test",
+      "status": "done",
+      "files": [
+        "tests/draw.spec.ts"
+      ]
+    },
+    {
+      "id": "TASK-6",
+      "storyId": "STORY-4",
+      "title": "Backend API (Fastify)",
+      "description": "Criar servidor de API que integre os serviços de participante e sorteio.",
+      "type": "implementation",
+      "status": "in_progress",
+      "files": [
+        "api/server.ts"
+      ]
+    },
+    {
+      "id": "TASK-7",
+      "storyId": "STORY-4",
+      "title": "Frontend Web (Vite + React)",
+      "description": "Implementar a interface de gestão e visualização do sorteio.",
+      "type": "implementation",
+      "status": "todo",
+      "files": [
+        "web/src/App.tsx"
+      ]
+    }
+  ]
+}
+```
+
+## Implementation plan (mock)
+
+1. Align code paths with `files` and architecture boundaries.
+2. Add or adjust tests under `tests/` when the task implies behaviour changes.
+3. Keep changes isolated to project `amigo-secreto`.
+
+## Actions performed (mock)
+
+- Marked task **in_progress** then **done** in `backlog/tasks.yaml`.
+- Updated project state: `currentTaskId`, `activeStoryId`, `lastExecutionType: engineer-task`.
+- Git branch skipped (disabled or no local `.git`).
+
+## Limitations
+
+- No LLM or real code edits in Bloco 4.2 — this report is deterministic mock output.
+
+## Next steps
+
+- Run tests and manual verification for files listed in the task.
+- Open a Git commit via `aios git:commit` when ready.
+
+---
+_Generated by **engineer task runner** (mock) at 2026-04-04T16:07:36.453Z_

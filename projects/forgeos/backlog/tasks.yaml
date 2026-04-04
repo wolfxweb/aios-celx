@@ -1,0 +1,43 @@
+tasks:
+  - id: TASK-1
+    storyId: STORY-1
+    title: Mapear entidades e regras do domínio
+    description: Definir a estrutura inicial do domínio e das regras de negócio centrais.
+    type: analysis
+    status: done
+  - id: TASK-2
+    storyId: STORY-1
+    title: Criar modelos iniciais no código
+    description: Estruturar tipos, entidades e serviços base do domínio.
+    type: implementation
+    status: done
+  - id: TASK-3
+    storyId: STORY-2
+    title: Definir endpoints principais da API
+    description: Implementar a base do backend alinhada ao contrato inicial.
+    type: implementation
+    status: done
+  - id: TASK-4
+    storyId: STORY-2
+    title: Adicionar testes unitários do backend
+    description: Cobrir regras principais e validações básicas.
+    type: test
+    status: done
+  - id: TASK-5
+    storyId: STORY-3
+    title: Criar interface inicial do utilizador
+    description: Montar o fluxo principal do frontend para o MVP.
+    type: implementation
+    status: done
+    files:
+      - web/index.html
+      - web/styles.css
+  - id: TASK-6
+    storyId: STORY-3
+    title: Adicionar testes do fluxo principal
+    description: Cobrir o fluxo crítico do utilizador no MVP.
+    type: test
+    status: done
+    files:
+      - tests/smoke.test.js
+

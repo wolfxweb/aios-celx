@@ -1,0 +1,11 @@
+epics:
+  - id: EPIC-1
+    title: Fundamentação do produto
+    goal: Estabelecer PRD, estrutura de backlog e primeira fatia de entrega.
+    status: draft
+
+  - id: EPIC-V2-PORTAL
+    title: Portal do cliente
+    goal: Acesso do cliente à visão dos seus tickets e comunicação sem expor o backoffice.
+    status: draft
+
