@@ -319,6 +319,32 @@ textarea {
   margin-top: 0.85rem;
 }
 
+.runtime-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.runtime-status-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.runtime-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.runtime-actions + .runtime-actions {
+  margin-top: 0.75rem;
+}
+
 .project-chat-card {
   min-height: 720px;
 }
@@ -918,6 +944,10 @@ details summary {
   .panel-grid-wide,
   .project-ops-grid,
   .project-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .runtime-status-grid {
     grid-template-columns: 1fr;
   }
 

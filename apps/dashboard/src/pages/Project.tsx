@@ -62,6 +62,21 @@ type PersistedChat = ChatSummary & {
 
 type ExecutionMode = "auto" | "manual";
 
+type RuntimeSnapshot = {
+  status: "stopped" | "running";
+  url: string | null;
+  port: number | null;
+  pid: number | null;
+  command: string | null;
+  startedAt: string | null;
+};
+
+type ProjectRuntimeStatus = {
+  projectId: string;
+  web: RuntimeSnapshot;
+  api: RuntimeSnapshot;
+};
+
 function toRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -145,9 +160,11 @@ export default function Project() {
   const [executionMode, setExecutionMode] = useState<ExecutionMode>("manual");
   const [executionModeBusy, setExecutionModeBusy] = useState(false);
   const [prepareBusy, setPrepareBusy] = useState(false);
+  const [runtime, setRuntime] = useState<ProjectRuntimeStatus | null>(null);
+  const [runtimeBusy, setRuntimeBusy] = useState(false);
 
   async function loadProjectData(projectId: string) {
-    const [sRes, stRes, qRes, tRes, mRes, aRes, executionRes] = await Promise.all([
+    const [sRes, stRes, qRes, tRes, mRes, aRes, executionRes, runtimeRes] = await Promise.all([
       apiGet<{ summary: unknown }>(`/projects/${encodeURIComponent(projectId)}/summary`).catch(() => null),
       apiGet<{ state: unknown }>(`/projects/${encodeURIComponent(projectId)}/state`).catch(() => null),
       apiGet<{ items: QueueItemRow[] }>(`/projects/${encodeURIComponent(projectId)}/queue`),
@@ -155,6 +172,7 @@ export default function Project() {
       apiGet<{ memory: unknown }>(`/projects/${encodeURIComponent(projectId)}/memory`).catch(() => null),
       apiGet<{ autonomy: unknown }>(`/projects/${encodeURIComponent(projectId)}/autonomy`),
       apiGet<{ mode: ExecutionMode }>(`/projects/${encodeURIComponent(projectId)}/execution-mode`).catch(() => null),
+      apiGet<ProjectRuntimeStatus>(`/projects/${encodeURIComponent(projectId)}/runtime`).catch(() => null),
     ]);
     const contextRes = await apiGet<{ context: ProjectWorkbenchContext }>(
       `/projects/${encodeURIComponent(projectId)}/context`,
@@ -168,6 +186,7 @@ export default function Project() {
     setAutonomy(aRes?.autonomy ?? null);
     setContext(contextRes?.context ?? null);
     setExecutionMode(executionRes?.mode === "auto" ? "auto" : "manual");
+    setRuntime(runtimeRes ?? null);
   }
 
   async function refreshProjectChats(projectId: string, targetChatId?: string) {
@@ -219,6 +238,19 @@ export default function Project() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+    if (runtime?.web.status !== "running" && runtime?.api.status !== "running") {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      void loadProjectData(id);
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [id, runtime?.web.status, runtime?.api.status]);
 
   async function runSchedulerOnce() {
     setRunning(true);
@@ -315,6 +347,43 @@ export default function Project() {
     } finally {
       setPrepareBusy(false);
     }
+  }
+
+  async function startProjectRuntime() {
+    setRuntimeBusy(true);
+    try {
+      const next = await apiPost<ProjectRuntimeStatus>(`/projects/${encodeURIComponent(id)}/runtime/start`, {
+        target: "all",
+      });
+      setRuntime(next);
+      setSchedulerMsg("Projeto iniciado. Usa os botões de abrir para ver no navegador.");
+    } catch (e) {
+      setSchedulerMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRuntimeBusy(false);
+    }
+  }
+
+  async function stopProjectRuntime() {
+    setRuntimeBusy(true);
+    try {
+      const next = await apiPost<ProjectRuntimeStatus>(`/projects/${encodeURIComponent(id)}/runtime/stop`, {
+        target: "all",
+      });
+      setRuntime(next);
+      setSchedulerMsg("Processos do projeto parados.");
+    } catch (e) {
+      setSchedulerMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRuntimeBusy(false);
+    }
+  }
+
+  function openRuntime(url: string | null) {
+    if (!url) {
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   if (!id) return <p>ID inválido.</p>;
@@ -553,6 +622,51 @@ export default function Project() {
       </div>
 
       <section className="project-bottom-grid">
+        <section className="section-card section-card-compact">
+          <div className="section-heading section-heading-tight">
+            <div>
+              <h3>Executar projeto</h3>
+              <p className="muted">Sobe o frontend e a API do projeto para teste no navegador.</p>
+            </div>
+          </div>
+          <div className="runtime-status-grid">
+            <div className="runtime-status-card">
+              <span className="muted">Frontend</span>
+              <strong>{runtime?.web.status === "running" ? "A correr" : "Parado"}</strong>
+              <span className="muted small">{runtime?.web.url ?? "Sem URL"}</span>
+            </div>
+            <div className="runtime-status-card">
+              <span className="muted">API</span>
+              <strong>{runtime?.api.status === "running" ? "A correr" : "Parado"}</strong>
+              <span className="muted small">{runtime?.api.url ?? "Sem URL"}</span>
+            </div>
+          </div>
+          <div className="runtime-actions">
+            <button type="button" onClick={startProjectRuntime} disabled={runtimeBusy}>
+              {runtimeBusy ? "A iniciar…" : "Executar projeto"}
+            </button>
+            <button type="button" onClick={stopProjectRuntime} disabled={runtimeBusy}>
+              Parar
+            </button>
+          </div>
+          <div className="runtime-actions">
+            <button
+              type="button"
+              onClick={() => openRuntime(runtime?.web.url ?? null)}
+              disabled={!runtime?.web.url}
+            >
+              Abrir frontend
+            </button>
+            <button
+              type="button"
+              onClick={() => openRuntime(runtime?.api.url ?? null)}
+              disabled={!runtime?.api.url}
+            >
+              Abrir API
+            </button>
+          </div>
+        </section>
+
         <section className="section-card section-card-compact">
           <div className="section-heading section-heading-tight">
             <div>
