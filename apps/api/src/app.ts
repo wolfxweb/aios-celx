@@ -8,6 +8,7 @@ import * as authSvc from "./services/auth-service.js";
 import * as chatSvc from "./services/chat-service.js";
 import * as modelRoutingSvc from "./services/model-routing.js";
 import * as portfolioSvc from "./services/portfolio.js";
+import * as projectRuntimeSvc from "./services/project-runtime.js";
 import * as projectWorkbench from "./services/project-workbench.js";
 import * as projects from "./services/projects.js";
 import * as schedSvc from "./services/scheduler.js";
@@ -44,6 +45,10 @@ const loginBodySchema = z.object({
 
 const projectExecutionModeBodySchema = z.object({
   mode: z.enum(["auto", "manual"]),
+});
+
+const projectRuntimeBodySchema = z.object({
+  target: z.enum(["web", "api", "all"]).default("all"),
 });
 
 export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
@@ -238,6 +243,58 @@ export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
     } catch {
       return reply.code(404).send({ error: "tasks_not_found", projectId });
     }
+  });
+
+  app.get("/projects/:projectId/runtime", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const runtime = await projectRuntimeSvc.getProjectRuntimeStatus(cfg.projectsRoot, projectId);
+    return runtime;
+  });
+
+  app.post("/projects/:projectId/runtime/start", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const parsed = projectRuntimeBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    const runtime = await projectRuntimeSvc.startProjectRuntime(
+      cfg.projectsRoot,
+      projectId,
+      parsed.data.target,
+    );
+    return runtime;
+  });
+
+  app.post("/projects/:projectId/runtime/stop", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const parsed = projectRuntimeBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    const runtime = await projectRuntimeSvc.stopProjectRuntime(
+      cfg.projectsRoot,
+      projectId,
+      parsed.data.target,
+    );
+    return runtime;
   });
 
   app.get("/projects/:projectId/context", async (request, reply) => {
