@@ -1,0 +1,25 @@
+{
+  "chatId": "98cfe6bb-141b-415c-ba00-66753549a655",
+  "scope": "global",
+  "projectId": null,
+  "title": "Novo projeto",
+  "runner": "claude-code-cli",
+  "model": "sonnet",
+  "status": "active",
+  "messages": [
+    {
+      "id": "4a916ffa-0a87-413d-b3f3-633cb0b7026f",
+      "role": "user",
+      "content": "iniciar aios-define-scope para novo projeto",
+      "createdAt": "2026-04-04T00:18:53.099Z"
+    },
+    {
+      "id": "634a0c39-0ed3-4f9d-a615-2413bc799751",
+      "role": "assistant",
+      "content": "Estou a funcionar como agente orquestrador global.\nVejo atualmente 3 projetos no ambiente gerido.\nPosso ajudar a criar projetos, ajustar prioridade/estado e orientar o próximo passo operacional.\nComandos suportados neste MVP:\n- `criar projeto <id>`\n- `definir prioridade alta projeto <id>`\n- `definir estado pausado projeto <id>`\n- `listar projetos`",
+      "createdAt": "2026-04-04T00:18:53.149Z"
+    }
+  ],
+  "createdAt": "2026-04-04T00:18:53.082Z",
+  "updatedAt": "2026-04-04T00:18:53.149Z"
+}

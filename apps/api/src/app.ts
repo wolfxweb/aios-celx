@@ -42,6 +42,10 @@ const loginBodySchema = z.object({
   password: z.string().trim().min(1),
 });
 
+const projectExecutionModeBodySchema = z.object({
+  mode: z.enum(["auto", "manual"]),
+});
+
 export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
   const app = Fastify({ logger: true });
   await app.register(cors, { origin: true });
@@ -293,6 +297,34 @@ export async function buildApp(cfg: ApiEnvConfig): Promise<FastifyInstance> {
     }
     const autonomy = await projects.getProjectAutonomy(cfg.projectsRoot, projectId);
     return { projectId, autonomy };
+  });
+
+  app.get("/projects/:projectId/execution-mode", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const mode = await projects.getProjectExecutionMode(cfg.projectsRoot, projectId);
+    return { projectId, mode };
+  });
+
+  app.post("/projects/:projectId/execution-mode", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    if (!assertSafeProjectId(projectId)) {
+      return reply.code(400).send({ error: "invalid_project_id" });
+    }
+    if (!(await projectExists(cfg.projectsRoot, projectId))) {
+      return reply.code(404).send({ error: "project_not_found", projectId });
+    }
+    const parsed = projectExecutionModeBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", details: parsed.error.flatten() });
+    }
+    const mode = await projects.setProjectExecutionMode(cfg.projectsRoot, projectId, parsed.data.mode);
+    return { projectId, mode };
   });
 
   app.post("/projects/:projectId/scheduler/run", async (request, reply) => {

@@ -1,6 +1,6 @@
 import {
-  ClaudeCodeEnginePlaceholder,
-  CodexEnginePlaceholder,
+  ClaudeCodeEngine,
+  CodexCliEngine,
   CursorEnginePlaceholder,
   createMockEngine,
   registerEngine,
@@ -8,6 +8,6 @@ import {
 import { runAgentCore } from "./run-agent-core.js";
 
 registerEngine(createMockEngine(runAgentCore));
-registerEngine(new ClaudeCodeEnginePlaceholder());
-registerEngine(new CodexEnginePlaceholder());
+registerEngine(new ClaudeCodeEngine());
+registerEngine(new CodexCliEngine());
 registerEngine(new CursorEnginePlaceholder());

@@ -1,0 +1,61 @@
+{
+  "chatId": "eac281eb-b913-44f2-999f-b6837fa02ef3",
+  "scope": "global",
+  "projectId": null,
+  "title": "Novo projeto",
+  "runner": "claude-code-cli",
+  "model": "sonnet",
+  "status": "active",
+  "messages": [
+    {
+      "id": "d61147c4-963c-4f85-b20e-6e41511a474b",
+      "role": "user",
+      "content": "iniciar aios-define-scope para novo projeto",
+      "createdAt": "2026-04-04T00:23:09.555Z"
+    },
+    {
+      "id": "8c0ddea3-7ad3-4a61-83d0-fc25bf697acd",
+      "role": "assistant",
+      "content": "Vamos abrir o fluxo `aios-define-scope`.\n\nPrimeiro preciso que escolhas explicitamente um destes caminhos:\n1. Novo projeto\n2. Nova funcionalidade\n3. Correção\n\nSe for `Novo projeto`, responde com uma descrição curta do produto que queres criar.\nSe for `Nova funcionalidade` ou `Correção`, responde também com o `projectId` existente.",
+      "createdAt": "2026-04-04T00:23:09.556Z"
+    },
+    {
+      "id": "6ac4dcb7-68cf-4caf-884c-06a025d1191f",
+      "role": "user",
+      "content": "Novo projeto You are a senior product manager and full-stack AI engineer.\n\nYour task is to generate a complete Product Requirements Document (PRD) and initial implementation plan for a SaaS product.\n\n---\n\n# PRODUCT CONTEXT\n\nProduct Name: ForgeOS\nCategory: AI-powered Operating System for Software Development\n\nDescription:\nForgeOS is a platform that helps developers, founders, and product teams build software using AI in a structured, organized, and scalable way.\n\nIt acts as a “system layer” that connects:\n\n* product ideas\n* PRDs\n* tasks\n* prompts\n* AI execution\n* development workflow\n\nThe goal is to replace chaotic AI usage (random prompts, disconnected tools, messy docs) with a unified system for building software.\n\n---\n\n# GOAL\n\nCreate a structured PRD for an MVP version of ForgeOS that is:\n\n* simple\n* highly usable\n* focused on real workflows\n* fast to build\n\n---\n\n# TARGET USERS\n\n* Indie hackers\n* SaaS founders\n* Developers using AI tools (ChatGPT, Claude, etc.)\n* Small product teams\n* Agencies\n\n---\n\n# CORE PROBLEM\n\nUsers are using AI in a fragmented way:\n\n* prompts are lost\n* no structured workflow\n* no connection between idea → PRD → execution\n* difficult to scale or reuse\n* high rework and inconsistency\n\n---\n\n# CORE VALUE PROPOSITION\n\n“ForgeOS turns AI into a structured system for building software.”\n\n---\n\n# MVP FEATURES (FOCUS ON THESE)\n\n1. Project Workspace\n\n* Create and manage projects\n* Each project has context (idea, description)\n\n2. PRD Generator\n\n* Generate structured PRDs from user input\n* Editable inside the platform\n\n3. Task Breakdown\n\n* Convert PRD into actionable tasks\n* Simple task management (status, priority)\n\n4. Prompt System\n\n* Save, reuse, and organize prompts\n* Link prompts to tasks or features\n\n5. AI Execution Layer\n\n* Run prompts with context\n* Keep history of outputs\n\n6. Simple Dashboard\n\n* Overview of project, tasks, and progress\n\n---\n\n# OUTPUT REQUIREMENTS\n\nGenerate a COMPLETE PRD using this structure:\n\n1. Executive Summary\n2. Problem Statement\n3. Goals and Objectives\n4. Target Users (Personas)\n5. Competitive Analysis\n6. Functional Requirements (with IDs, user stories, acceptance criteria)\n7. Non-Functional Requirements\n8. UX / UI Structure\n9. Technical Architecture\n10. Assumptions & Constraints\n11. Risks\n12. MVP Scope vs Future Scope\n13. Timeline\n\n---\n\n# ADDITIONAL REQUIREMENTS\n\n* Be specific and actionable\n* Avoid vague language\n* Include real examples where helpful\n* Keep MVP lean (do NOT overcomplicate)\n* Think like a startup building fast\n\n---\n\n# BONUS (IMPORTANT)\n\nAfter the PRD, also generate:\n\n1. Database schema (tables and fields)\n2. API endpoints (REST or GraphQL)\n3. Suggested tech stack\n4. First version UI structure (pages/components)\n\n---\n\n# STYLE\n\n* Clear\n* Structured\n* Professional\n* Startup-oriented\n* No fluff\n\n---\n\nNow generate the full PRD and implementation plan for ForgeOS.",
+      "createdAt": "2026-04-04T00:23:26.192Z"
+    },
+    {
+      "id": "d104d7e9-322b-4407-b2ee-f214d2f22518",
+      "role": "assistant",
+      "content": "Para eu criar tudo do novo projeto nesta conversa, responde neste formato:\n\n`projectId: nome-do-projeto`\n`descrição: produto web para ...`\n\nExemplo:\n`projectId: portal-cliente`\n`descrição: portal web para clientes acompanharem contratos, boletos e chamados.`",
+      "createdAt": "2026-04-04T00:23:26.193Z"
+    },
+    {
+      "id": "ab1dd8a7-4deb-421b-a838-c872ef5d58d6",
+      "role": "user",
+      "content": "projetId =ForgeOS\ndescrição=  ForgeOS is a platform that helps developers, founders, and product teams build software using AI in a structured, organized, and scalable way.",
+      "createdAt": "2026-04-04T00:24:45.213Z"
+    },
+    {
+      "id": "d9b3a7a8-b51b-404a-ab2e-7941fcfe58e0",
+      "role": "assistant",
+      "content": "Criei o projeto completo `forgeos` a partir do escopo informado.\n\nJá deixei preparado:\n- estrutura do projeto\n- docs/prd.md\n- docs/discovery.md\n- docs/architecture.md\n- docs/api-contracts.md\n- docs/relatorio-final.md\n- backlog/epics.yaml\n- backlog/stories.yaml\n- backlog/tasks.yaml\n\nPróximo passo: abrir `/app/project/forgeos` para rever o projeto ou continuar no orquestrador para ajustar o escopo.",
+      "createdAt": "2026-04-04T00:24:45.322Z"
+    },
+    {
+      "id": "0f0f9ffc-c566-4437-b6eb-dfeaa3338cac",
+      "role": "user",
+      "content": "pode inicar  a implementação",
+      "createdAt": "2026-04-04T00:26:42.814Z"
+    },
+    {
+      "id": "fc8faa29-f371-4591-a393-185eab563ae8",
+      "role": "assistant",
+      "content": "Para eu criar tudo do novo projeto nesta conversa, responde neste formato:\n\n`projectId: nome-do-projeto`\n`descrição: produto web para ...`\n\nExemplo:\n`projectId: portal-cliente`\n`descrição: portal web para clientes acompanharem contratos, boletos e chamados.`",
+      "createdAt": "2026-04-04T00:26:42.814Z"
+    }
+  ],
+  "createdAt": "2026-04-04T00:23:09.517Z",
+  "updatedAt": "2026-04-04T00:26:42.814Z"
+}

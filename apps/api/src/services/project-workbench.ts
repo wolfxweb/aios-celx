@@ -1,10 +1,11 @@
 import { loadProjectConfig, projectPath } from "@aios-celx/project-manager";
+import { enqueue } from "@aios-celx/execution-queue";
 import { mergeAutonomyPolicy, TasksDocumentSchema, type Task } from "@aios-celx/shared";
-import { readState } from "@aios-celx/state-manager";
+import { readState, updateState } from "@aios-celx/state-manager";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { readYaml, writeYaml } from "../../../../packages/artifact-manager/dist/index.js";
-import { getProjectQueue, getProjectSummary } from "./projects.js";
+import { getProjectQueue, getProjectSummary, getProjectTasks } from "./projects.js";
 
 type WorkbenchFile = {
   path: string;
@@ -159,9 +160,72 @@ async function saveTasksDocument(projectRoot: string, tasks: Task[]) {
   await writeYaml(join(projectRoot, "backlog/tasks.yaml"), { tasks });
 }
 
+async function startProjectDevelopment(projectsRoot: string, projectId: string): Promise<string> {
+  const [tasks, queue] = await Promise.all([
+    getProjectTasks(projectsRoot, projectId),
+    getProjectQueue(projectsRoot, projectId).catch(() => []),
+  ]);
+  const existingQueuedTaskIds = new Set(
+    queue
+      .filter((item) => item.status === "ready" || item.status === "pending" || item.status === "running")
+      .map((item) => String(item.payload?.taskId ?? ""))
+      .filter(Boolean),
+  );
+  const todoTasks = tasks.filter((task) => task.status === "todo");
+  const selectedTasks = todoTasks.filter((task) => !existingQueuedTaskIds.has(task.id)).slice(0, 2);
+
+  for (const task of selectedTasks) {
+    await enqueue(projectsRoot, projectId, {
+      type: "run-task",
+      priority: 100,
+      payload: {
+        taskId: task.id,
+        storyId: task.storyId,
+      },
+      metadata: {
+        storyId: task.storyId,
+        source: "project-chat:start-development",
+      },
+    });
+  }
+
+  await updateState(projectsRoot, projectId, {
+    stage: "implementation",
+    currentAgent: "engineer",
+    currentTaskId: selectedTasks[0]?.id ?? null,
+    blocked: false,
+    requiresHumanApproval: false,
+    nextGate: "implementation_complete",
+  });
+
+  if (selectedTasks.length === 0) {
+    return [
+      `Preparei o projeto \`${projectId}\` para desenvolvimento, mas não encontrei novas tasks \`todo\` para enfileirar.`,
+      "Se já houver tarefas na fila, podes seguir com a execução pelo scheduler.",
+    ].join("\n\n");
+  }
+
+  return [
+    `Preparei o desenvolvimento do projeto \`${projectId}\`.`,
+    `Enfileirei ${selectedTasks.length} task(s): ${selectedTasks.map((task) => `\`${task.id}\``).join(", ")}.`,
+    "O projeto passou para `implementation` e já pode seguir para execução.",
+  ].join("\n\n");
+}
+
 async function maybeHandleProjectAction(projectsRoot: string, projectId: string, message: string): Promise<string | null> {
   const normalized = message.trim().toLowerCase();
   const projectRoot = projectPath(projectsRoot, projectId);
+
+  if (
+    normalized.includes("iniciar desenvolvimento") ||
+    normalized.includes("inicie o desenvolvimento") ||
+    normalized.includes("começar desenvolvimento") ||
+    normalized.includes("comecar desenvolvimento") ||
+    normalized.includes("preparar implementação") ||
+    normalized.includes("preparar implementacao")
+  ) {
+    return startProjectDevelopment(projectsRoot, projectId);
+  }
 
   const bulkStatusMatch = normalized.match(
     /(?:marc(?:a|ar)|ajust(?:a|ar)|alter(?:a|ar)|mud(?:a|ar)).*tarefas?.*(pendentes|todo|em andamento|in_progress|bloqueadas|blocked|finalizadas|done).*(?:para|como).*(pendentes|todo|em andamento|in_progress|bloqueadas|blocked|finalizadas|done)/i,

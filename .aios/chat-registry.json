@@ -1,7 +1,43 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-04T00:08:31.491Z",
+  "updatedAt": "2026-04-04T00:39:15.571Z",
   "chats": [
+    {
+      "chatId": "b270db55-bace-497f-b401-e3b2bd84d46f",
+      "scope": "project",
+      "projectId": "forgeos",
+      "title": "Conversa do projeto forgeos",
+      "runner": "codex-cli",
+      "model": "codex",
+      "status": "active",
+      "createdAt": "2026-04-04T00:25:32.239Z",
+      "updatedAt": "2026-04-04T00:39:15.570Z",
+      "messageCount": 2
+    },
+    {
+      "chatId": "eac281eb-b913-44f2-999f-b6837fa02ef3",
+      "scope": "global",
+      "projectId": null,
+      "title": "Novo projeto",
+      "runner": "claude-code-cli",
+      "model": "sonnet",
+      "status": "active",
+      "createdAt": "2026-04-04T00:23:09.517Z",
+      "updatedAt": "2026-04-04T00:26:42.814Z",
+      "messageCount": 8
+    },
+    {
+      "chatId": "98cfe6bb-141b-415c-ba00-66753549a655",
+      "scope": "global",
+      "projectId": null,
+      "title": "Novo projeto",
+      "runner": "claude-code-cli",
+      "model": "sonnet",
+      "status": "active",
+      "createdAt": "2026-04-04T00:18:53.082Z",
+      "updatedAt": "2026-04-04T00:18:53.149Z",
+      "messageCount": 2
+    },
     {
       "chatId": "cade3b01-8dce-4e3b-ba19-af23b7a4a748",
       "scope": "project",

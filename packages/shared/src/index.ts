@@ -222,6 +222,12 @@ export const ProjectConfigSchema = z.object({
    * `manual` requires `aios approve --gate <id>` per gate.
    */
   gateApproval: z.enum(["auto", "manual"]).optional(),
+  /**
+   * Queue consumption mode for this project.
+   * `manual`: only runs when explicitly triggered.
+   * `auto`: background worker may execute eligible queue items automatically.
+   */
+  executionMode: z.enum(["auto", "manual"]).optional(),
 });
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
@@ -259,6 +265,7 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
     git,
     autonomy: mergeAutonomyPolicy(config.autonomy),
     gateApproval: config.gateApproval ?? "auto",
+    executionMode: config.executionMode ?? "manual",
   };
 }
 

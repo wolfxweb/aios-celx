@@ -296,6 +296,29 @@ textarea {
   gap: 1rem;
 }
 
+.project-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.project-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(300px, 1fr) minmax(360px, 1.2fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.mode-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.execution-mode-actions {
+  margin-top: 0.85rem;
+}
+
 .project-chat-card {
   min-height: 720px;
 }
@@ -458,11 +481,24 @@ textarea {
   gap: 0.75rem;
 }
 
+.section-card-compact {
+  padding: 1rem;
+}
+
+.section-heading-tight {
+  margin-bottom: 0.75rem;
+}
+
 .task-filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-bottom: 1rem;
+}
+
+.task-filter-row-compact {
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
 }
 
 .filter-chip {
@@ -491,6 +527,10 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.task-list-item-compact {
+  padding: 0.75rem;
 }
 
 .overview-row {
@@ -537,6 +577,20 @@ textarea {
 .list-card {
   display: grid;
   gap: 0.8rem;
+}
+
+.compact-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.compact-list-item {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .list-row {
@@ -861,7 +915,9 @@ details summary {
   }
 
   .project-layout,
-  .panel-grid-wide {
+  .panel-grid-wide,
+  .project-ops-grid,
+  .project-bottom-grid {
     grid-template-columns: 1fr;
   }
 

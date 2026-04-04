@@ -6,6 +6,7 @@ import {
   listProjectsOnDisk,
   projectExists,
   projectPath,
+  saveProjectConfig,
 } from "@aios-celx/project-manager";
 import { mergeAutonomyPolicy, TasksDocumentSchema } from "@aios-celx/shared";
 import { readState } from "@aios-celx/state-manager";
@@ -61,4 +62,34 @@ export async function getProjectTasks(projectsRoot: string, projectId: string) {
 export async function getProjectAutonomy(projectsRoot: string, projectId: string) {
   const cfg = await loadProjectConfig(projectsRoot, projectId);
   return mergeAutonomyPolicy(cfg.autonomy);
+}
+
+export async function getProjectExecutionMode(projectsRoot: string, projectId: string) {
+  const cfg = await loadProjectConfig(projectsRoot, projectId);
+  const record = cfg as Record<string, unknown>;
+  return record.executionMode === "auto" ? "auto" : "manual";
+}
+
+export async function setProjectExecutionMode(
+  projectsRoot: string,
+  projectId: string,
+  mode: "auto" | "manual",
+) {
+  const cfg = await loadProjectConfig(projectsRoot, projectId);
+  await saveProjectConfig(projectsRoot, projectId, {
+    ...(cfg as Record<string, unknown>),
+    executionMode: mode,
+  } as typeof cfg & { executionMode: "auto" | "manual" });
+  return mode;
+}
+
+export async function listProjectsWithExecutionMode(projectsRoot: string) {
+  const ids = await listProjectsOnDisk(projectsRoot);
+  const entries = await Promise.all(
+    ids.map(async (projectId) => ({
+      projectId,
+      executionMode: await getProjectExecutionMode(projectsRoot, projectId),
+    })),
+  );
+  return entries;
 }

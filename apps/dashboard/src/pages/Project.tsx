@@ -60,6 +60,8 @@ type PersistedChat = ChatSummary & {
   messages: ChatMessage[];
 };
 
+type ExecutionMode = "auto" | "manual";
+
 function toRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -100,6 +102,27 @@ function formatStatusLabel(status: string): string {
   return map[normalized] ?? status.replace(/_/g, " ");
 }
 
+function compactId(value: string): string {
+  return value.length > 10 ? value.slice(0, 8) : value;
+}
+
+function queueStatusOrder(status?: string): number {
+  switch (status) {
+    case "running":
+      return 0;
+    case "ready":
+      return 1;
+    case "pending":
+      return 2;
+    case "failed":
+      return 3;
+    case "done":
+      return 4;
+    default:
+      return 5;
+  }
+}
+
 export default function Project() {
   const { projectId } = useParams<{ projectId: string }>();
   const id = projectId ?? "";
@@ -119,15 +142,19 @@ export default function Project() {
   const [activeChat, setActiveChat] = useState<PersistedChat | null>(null);
   const [chatBusy, setChatBusy] = useState(false);
   const [taskFilter, setTaskFilter] = useState<string>("todo");
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>("manual");
+  const [executionModeBusy, setExecutionModeBusy] = useState(false);
+  const [prepareBusy, setPrepareBusy] = useState(false);
 
   async function loadProjectData(projectId: string) {
-    const [sRes, stRes, qRes, tRes, mRes, aRes] = await Promise.all([
+    const [sRes, stRes, qRes, tRes, mRes, aRes, executionRes] = await Promise.all([
       apiGet<{ summary: unknown }>(`/projects/${encodeURIComponent(projectId)}/summary`).catch(() => null),
       apiGet<{ state: unknown }>(`/projects/${encodeURIComponent(projectId)}/state`).catch(() => null),
       apiGet<{ items: QueueItemRow[] }>(`/projects/${encodeURIComponent(projectId)}/queue`),
       apiGet<{ tasks: TaskRow[] }>(`/projects/${encodeURIComponent(projectId)}/tasks`).catch(() => null),
       apiGet<{ memory: unknown }>(`/projects/${encodeURIComponent(projectId)}/memory`).catch(() => null),
       apiGet<{ autonomy: unknown }>(`/projects/${encodeURIComponent(projectId)}/autonomy`),
+      apiGet<{ mode: ExecutionMode }>(`/projects/${encodeURIComponent(projectId)}/execution-mode`).catch(() => null),
     ]);
     const contextRes = await apiGet<{ context: ProjectWorkbenchContext }>(
       `/projects/${encodeURIComponent(projectId)}/context`,
@@ -140,6 +167,7 @@ export default function Project() {
     setMemory(mRes?.memory ?? null);
     setAutonomy(aRes?.autonomy ?? null);
     setContext(contextRes?.context ?? null);
+    setExecutionMode(executionRes?.mode === "auto" ? "auto" : "manual");
   }
 
   async function refreshProjectChats(projectId: string, targetChatId?: string) {
@@ -247,6 +275,48 @@ export default function Project() {
     }
   }
 
+  async function changeExecutionMode(nextMode: ExecutionMode) {
+    if (executionModeBusy || nextMode === executionMode) {
+      return;
+    }
+    setExecutionModeBusy(true);
+    try {
+      const result = await apiPost<{ mode: ExecutionMode }>(
+        `/projects/${encodeURIComponent(id)}/execution-mode`,
+        { mode: nextMode },
+      );
+      setExecutionMode(result.mode);
+      if (nextMode === "auto") {
+        setSchedulerMsg("Execução automática ativada. A fila será consumida pela VPS quando houver itens elegíveis.");
+      } else {
+        setSchedulerMsg("Execução manual ativada. A fila só correrá por botão, chat ou chamada explícita.");
+      }
+      await loadProjectData(id);
+    } catch (e) {
+      setSchedulerMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setExecutionModeBusy(false);
+    }
+  }
+
+  async function prepareDevelopmentQueue() {
+    if (prepareBusy) {
+      return;
+    }
+    setPrepareBusy(true);
+    try {
+      const result = await apiPost<{ reply: string }>(`/projects/${encodeURIComponent(id)}/chat`, {
+        message: "iniciar desenvolvimento",
+      });
+      setSchedulerMsg(result.reply);
+      await loadProjectData(id);
+    } catch (e) {
+      setSchedulerMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPrepareBusy(false);
+    }
+  }
+
   if (!id) return <p>ID inválido.</p>;
   if (loading) return <p className="muted">A carregar…</p>;
   if (error) return <p className="error">Erro: {error}</p>;
@@ -279,7 +349,22 @@ export default function Project() {
   const memoryCount = typeof memoryData?.entryCount === "number" ? memoryData.entryCount : 0;
   const filteredTasks = tasks.filter((task) => taskFilter === "all" || task.status === taskFilter);
   const queueReadyCount = queueItems.filter((item) => item.status === "ready").length;
+  const queuePendingCount = queueItems.filter((item) => item.status === "pending").length;
   const queueRunningCount = queueItems.filter((item) => item.status === "running").length;
+  const queueDoneCount = queueItems.filter((item) => item.status === "done").length;
+  const queueManualRunnableCount = queueItems.filter(
+    (item) => item.status === "pending" || item.status === "ready",
+  ).length;
+  const visibleQueueItems = [...queueItems]
+    .sort((a, b) => {
+      const statusDiff = queueStatusOrder(a.status) - queueStatusOrder(b.status);
+      if (statusDiff !== 0) {
+        return statusDiff;
+      }
+      return (b.priority ?? 0) - (a.priority ?? 0);
+    })
+    .slice(0, 4);
+  const todoTaskCount = tasks.filter((task) => task.status === "todo").length;
   const taskStatusCounts = tasks.reduce<Record<string, number>>((acc, task) => {
     const key = task.status || "unknown";
     acc[key] = (acc[key] ?? 0) + 1;
@@ -314,9 +399,9 @@ export default function Project() {
             </p>
           </div>
           <div className="hero-actions">
-            {queueReadyCount > 0 && !blocked ? (
+            {queueManualRunnableCount > 0 && !blocked ? (
               <button type="button" onClick={runSchedulerOnce} disabled={running}>
-                {running ? "A executar…" : "Executar próximo passo"}
+                {running ? "A executar…" : "Executar fila agora"}
               </button>
             ) : (
               <span className="hero-hint">
@@ -404,7 +489,7 @@ export default function Project() {
         </section>
 
         <aside className="project-side-rail">
-          <section className="section-card">
+          <section className="section-card section-card-compact">
             <div className="section-heading">
               <div>
                 <h3>Visão rápida</h3>
@@ -455,87 +540,158 @@ export default function Project() {
                 <strong>{autonomyMode}</strong>
               </div>
               <div className="overview-row">
+                <span className="muted">API</span>
+                <strong>{getApiBase()}</strong>
+              </div>
+              <div className="overview-row">
                 <span className="muted">Fila</span>
                 <strong>{queueItems.length} item(ns)</strong>
               </div>
             </div>
           </section>
-
-          <section className="section-card">
-            <div className="section-heading">
-              <div>
-                <h3>Fila de execução</h3>
-                <p className="muted">Resumo para decidir o próximo passo.</p>
-              </div>
-            </div>
-            {queueItems.length === 0 ? (
-              <p className="muted">Sem itens enfileirados.</p>
-            ) : (
-              <div className="list-card">
-                {queueItems.slice(0, 6).map((it) => (
-                  <div key={it.id} className="list-row">
-                    <strong>{it.id}</strong>
-                    <span className="muted">
-                      {it.status ?? "—"} · {it.type ?? "—"} · prioridade {it.priority ?? "—"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="section-card">
-            <div className="section-heading">
-              <div>
-                <h3>Tarefas do projeto</h3>
-                <p className="muted">Filtra para encontrar rapidamente o que ainda falta executar.</p>
-              </div>
-            </div>
-            <div className="task-filter-row">
-              {statusFilters.map((filter) => (
-                <button
-                  key={filter.key}
-                  type="button"
-                  className={`filter-chip ${taskFilter === filter.key ? "filter-chip-active" : ""}`}
-                  onClick={() => setTaskFilter(filter.key)}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-            <div className="list-card">
-              {filteredTasks.slice(0, 8).map((task) => (
-                <article key={task.id} className="task-list-item">
-                  <div className="task-list-head">
-                    <strong>{task.id}</strong>
-                    <span className="badge">{task.status}</span>
-                  </div>
-                  <strong>{task.title}</strong>
-                  <span className="muted small">
-                    {task.type ?? "sem tipo"} · story {task.storyId}
-                  </span>
-                  {task.description ? <span className="muted small">{task.description}</span> : null}
-                </article>
-              ))}
-              {filteredTasks.length === 0 ? <p className="muted">Sem tarefas neste filtro.</p> : null}
-            </div>
-          </section>
-
-          <section className="section-card">
-            <h3>Ambiente</h3>
-            <div className="overview-list">
-              <div className="overview-row">
-                <span className="muted">Autonomia</span>
-                <strong>{autonomyMode}</strong>
-              </div>
-              <div className="overview-row">
-                <span className="muted">API</span>
-                <strong>{getApiBase()}</strong>
-              </div>
-            </div>
-          </section>
         </aside>
       </div>
+
+      <section className="project-bottom-grid">
+        <section className="section-card section-card-compact">
+          <div className="section-heading section-heading-tight">
+            <div>
+              <h3>Modo de execução</h3>
+              <p className="muted">Controla se a VPS consome a fila sozinha ou só por ação manual.</p>
+            </div>
+          </div>
+          <div className="mode-toggle-row">
+            <button
+              type="button"
+              className={`filter-chip ${executionMode === "manual" ? "filter-chip-active" : ""}`}
+              onClick={() => changeExecutionMode("manual")}
+              disabled={executionModeBusy}
+            >
+              Manual
+            </button>
+            <button
+              type="button"
+              className={`filter-chip ${executionMode === "auto" ? "filter-chip-active" : ""}`}
+              onClick={() => changeExecutionMode("auto")}
+              disabled={executionModeBusy}
+            >
+              Automático
+            </button>
+          </div>
+          {executionMode === "manual" ? (
+            <div className="execution-mode-actions">
+              {queueManualRunnableCount > 0 && !blocked ? (
+                <button type="button" onClick={runSchedulerOnce} disabled={running}>
+                  {running ? "A executar…" : "Executar fila agora"}
+                </button>
+              ) : todoTaskCount > 0 ? (
+                <>
+                  <button type="button" onClick={prepareDevelopmentQueue} disabled={prepareBusy || blocked}>
+                    {prepareBusy ? "A preparar…" : "Preparar fila"}
+                  </button>
+                  <p className="muted small">
+                    Existem tarefas pendentes, mas ainda não há itens elegíveis na fila.
+                  </p>
+                </>
+              ) : (
+                <p className="muted small">
+                  {blocked
+                    ? "Execução manual indisponível enquanto o projeto estiver bloqueado."
+                    : "Sem itens pendentes ou prontos para executar manualmente."}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="execution-mode-actions">
+              <p className="muted small">
+                {queueManualRunnableCount > 0
+                  ? "Modo automático ativo. A VPS consome a fila quando houver itens elegíveis."
+                  : todoTaskCount > 0
+                    ? "Modo automático ativo, mas ainda não há itens elegíveis na fila. Prepara a fila para a VPS começar a consumir."
+                    : "Modo automático ativo. Não há itens elegíveis neste momento."}
+              </p>
+              {queueManualRunnableCount === 0 && todoTaskCount > 0 ? (
+                <button type="button" onClick={prepareDevelopmentQueue} disabled={prepareBusy || blocked}>
+                  {prepareBusy ? "A preparar…" : "Preparar fila"}
+                </button>
+              ) : null}
+            </div>
+          )}
+        </section>
+
+        <section className="section-card section-card-compact">
+          <div className="section-heading section-heading-tight">
+            <div>
+              <h3>Fila de execução</h3>
+              <p className="muted">Itens mais próximos de correr.</p>
+            </div>
+            {queueItems.length > 0 && !blocked ? (
+              <button type="button" onClick={runSchedulerOnce} disabled={running}>
+                {running ? "A executar…" : "Reexecutar fila"}
+              </button>
+            ) : null}
+          </div>
+          {queueItems.length === 0 ? (
+            <p className="muted">Sem itens enfileirados.</p>
+          ) : (
+            <div className="compact-list">
+              <p className="muted small">
+                {queuePendingCount} pendente(s) · {queueReadyCount} pronto(s) · {queueRunningCount} em execução · {queueDoneCount} concluído(s)
+              </p>
+              {queueManualRunnableCount === 0 && queueDoneCount > 0 ? (
+                <p className="muted small">Os itens visíveis abaixo já foram concluídos. O auto-runner não reexecuta itens `done`.</p>
+              ) : null}
+              {visibleQueueItems.map((it) => (
+                <article key={it.id} className="compact-list-item">
+                  <div className="task-list-head">
+                    <strong>{compactId(it.id)}</strong>
+                    <span className="badge">{it.status ?? "—"}</span>
+                  </div>
+                  <span className="muted small">
+                    {it.type ?? "—"} · prioridade {it.priority ?? "—"}
+                  </span>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="section-card section-card-compact">
+          <div className="section-heading section-heading-tight">
+            <div>
+              <h3>Tarefas do projeto</h3>
+              <p className="muted">Filtro rápido por status.</p>
+            </div>
+          </div>
+          <div className="task-filter-row task-filter-row-compact">
+            {statusFilters.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                className={`filter-chip ${taskFilter === filter.key ? "filter-chip-active" : ""}`}
+                onClick={() => setTaskFilter(filter.key)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+          <div className="compact-list">
+            {filteredTasks.slice(0, 6).map((task) => (
+              <article key={task.id} className="task-list-item task-list-item-compact">
+                <div className="task-list-head">
+                  <strong>{task.id}</strong>
+                  <span className="badge">{task.status}</span>
+                </div>
+                <strong>{task.title}</strong>
+                <span className="muted small">
+                  {task.type ?? "sem tipo"} · story {task.storyId}
+                </span>
+              </article>
+            ))}
+            {filteredTasks.length === 0 ? <p className="muted">Sem tarefas neste filtro.</p> : null}
+          </div>
+        </section>
+      </section>
 
       <section className="section-card">
         <div className="section-heading">

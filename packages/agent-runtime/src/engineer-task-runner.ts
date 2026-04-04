@@ -1,5 +1,6 @@
 import { ensureDir, writeMarkdown } from "@aios-celx/artifact-manager";
 import { resolveAgentContext } from "@aios-celx/context-resolver";
+import { runClaudeCodePrompt, runCliProcess, runCodexPrompt } from "@aios-celx/engine-adapters";
 import {
   findTaskById,
   loadStories,
@@ -25,6 +26,181 @@ export type EngineerTaskResult = {
 
 function safePathSegment(id: string): string {
   return id.replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+function uniqueSorted(items: string[]): string[] {
+  return [...new Set(items)].sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+async function readGitStatusLines(projectRoot: string): Promise<string[]> {
+  const result = await runCliProcess("git", ["status", "--porcelain"], {
+    cwd: projectRoot,
+    timeoutMs: 10000,
+  });
+  if (!result.ok && !result.stdout.trim()) {
+    return [];
+  }
+  return result.stdout
+    .split(/\r?\n/)
+    .map((line: string) => line.trim())
+    .filter(Boolean);
+}
+
+function parseChangedPaths(statusLines: string[]): string[] {
+  return uniqueSorted(
+    statusLines
+      .map((line) => line.slice(3).trim())
+      .filter(Boolean),
+  );
+}
+
+function buildRealTaskPrompt(options: {
+  projectId: string;
+  task: {
+    id: string;
+    storyId: string;
+    title: string;
+    description?: string;
+    type?: string;
+    files?: string[];
+    acceptanceCriteria?: string[];
+    notes?: string;
+  };
+  architectureText: string;
+  apiContractsText: string;
+  taskYamlPreview: string;
+  storyTitle?: string;
+}): string {
+  const { projectId, task, architectureText, apiContractsText, taskYamlPreview, storyTitle } = options;
+  return `You are implementing one backlog task inside the local project "${projectId}".
+
+Task ID: ${task.id}
+Story ID: ${task.storyId}
+Story title: ${storyTitle ?? "n/a"}
+Task title: ${task.title}
+Task type: ${task.type ?? "not set"}
+
+Description:
+${task.description ?? "(none)"}
+
+Target files:
+${(task.files ?? []).map((file) => `- ${file}`).join("\n") || "- none listed"}
+
+Acceptance criteria:
+${(task.acceptanceCriteria ?? []).map((item) => `- ${item}`).join("\n") || "- none listed"}
+
+Notes:
+${task.notes ?? "(none)"}
+
+Architecture excerpt:
+\`\`\`
+${architectureText.split("\n").slice(0, 80).join("\n")}
+\`\`\`
+
+API/contracts excerpt:
+\`\`\`
+${apiContractsText.split("\n").slice(0, 80).join("\n")}
+\`\`\`
+
+Backlog excerpt:
+\`\`\`yaml
+${taskYamlPreview}
+\`\`\`
+
+Instructions:
+- Make real file edits in this project to complete only this task.
+- Update or add tests if the task implies behavior changes.
+- Keep changes scoped and production-oriented.
+- Do not edit backlog YAML yourself.
+- When finished, output a concise summary of what changed and which files were touched.`;
+}
+
+async function runRealEngineerTask(options: {
+  engineId: "codex" | "claude-code";
+  projectRoot: string;
+  projectId: string;
+  task: {
+    id: string;
+    storyId: string;
+    title: string;
+    description?: string;
+    type?: string;
+    files?: string[];
+    acceptanceCriteria?: string[];
+    notes?: string;
+  };
+  architectureText: string;
+  apiContractsText: string;
+  taskYamlPreview: string;
+  storyTitle?: string;
+  gitBranch?: string;
+}): Promise<{ ok: boolean; message: string; changedFiles: string[]; cliOutput: string; reportBody: string }> {
+  const prompt = buildRealTaskPrompt({
+    projectId: options.projectId,
+    task: options.task,
+    architectureText: options.architectureText,
+    apiContractsText: options.apiContractsText,
+    taskYamlPreview: options.taskYamlPreview,
+    storyTitle: options.storyTitle,
+  });
+
+  const beforeGitStatus = (await hasLocalGitRepository(options.projectRoot))
+    ? await readGitStatusLines(options.projectRoot)
+    : [];
+
+  const cliResult =
+    options.engineId === "codex"
+      ? await runCodexPrompt(prompt, options.projectRoot)
+      : await runClaudeCodePrompt(prompt, options.projectRoot);
+
+  const afterGitStatus = (await hasLocalGitRepository(options.projectRoot))
+    ? await readGitStatusLines(options.projectRoot)
+    : [];
+  const changedFiles = parseChangedPaths(afterGitStatus).filter((file) => !beforeGitStatus.some((line) => line.endsWith(file)));
+
+  const touchedFiles = changedFiles.length > 0 ? changedFiles : (options.task.files ?? []);
+  const ok = cliResult.ok && touchedFiles.length > 0;
+  const message = ok
+    ? `Task ${options.task.id} executed with ${options.engineId}; ${touchedFiles.length} file(s) touched.`
+    : cliResult.ok
+      ? `Engine ${options.engineId} finished but no file changes were detected for task ${options.task.id}.`
+      : cliResult.message;
+
+  const reportBody = `# Implementation report — ${options.task.id}
+
+## Engine
+
+- Engine: \`${options.engineId}\`
+- Git branch: ${options.gitBranch ?? "(not created)"}
+- Result: ${ok ? "success" : "failed"}
+
+## Task
+
+- ID: ${options.task.id}
+- Story: ${options.task.storyId}
+- Title: ${options.task.title}
+
+## Files touched
+
+${touchedFiles.map((file) => `- \`${file}\``).join("\n") || "- none detected"}
+
+## Engine output
+
+\`\`\`
+${cliResult.combined.slice(0, 12000) || "(no output captured)"}
+\`\`\`
+
+---
+Generated by AIOS real engine runner at ${new Date().toISOString()}
+`;
+
+  return {
+    ok,
+    message,
+    changedFiles: touchedFiles,
+    cliOutput: cliResult.combined,
+    reportBody,
+  };
 }
 
 export async function runEngineerTask(options: {
@@ -122,6 +298,60 @@ export async function runEngineerTask(options: {
   const safeFile = safePathSegment(taskId);
   const relReport = `docs/execution/${safeFile}-implementation.md`;
   await ensureDir(join(projectRoot, "docs", "execution"));
+
+  const selectedEngine = config.engines?.engineer ?? config.engines?.default ?? "mock-engine";
+  if (selectedEngine === "codex" || selectedEngine === "claude-code") {
+    const realResult = await runRealEngineerTask({
+      engineId: selectedEngine,
+      projectRoot,
+      projectId,
+      task,
+      architectureText: archText,
+      apiContractsText: apiText,
+      taskYamlPreview: tasksYamlPreview,
+      storyTitle: story?.title,
+      gitBranch,
+    });
+
+    await writeMarkdown(join(projectRoot, relReport), realResult.reportBody);
+
+    if (!realResult.ok) {
+      tasksDoc = updateTaskStatus(await loadTasks(projectRoot), taskId, "todo");
+      await saveTasks(projectRoot, tasksDoc);
+      await appendExecutionLogLine(projectRoot, {
+        type: "engineer.task.failed",
+        projectId,
+        taskId,
+        report: relReport,
+      });
+      return {
+        ok: false,
+        taskId,
+        reportPath: relReport,
+        message: realResult.message,
+        gitBranch,
+      };
+    }
+
+    tasksDoc = updateTaskStatus(await loadTasks(projectRoot), taskId, "done");
+    await saveTasks(projectRoot, tasksDoc);
+    await syncStoryStatusFromTasks(projectRoot, task.storyId);
+
+    await appendExecutionLogLine(projectRoot, {
+      type: "engineer.task.done",
+      projectId,
+      taskId,
+      report: relReport,
+    });
+
+    return {
+      ok: true,
+      taskId,
+      reportPath: relReport,
+      message: realResult.message,
+      gitBranch,
+    };
+  }
 
   const body = `# Implementation report — ${taskId}
 

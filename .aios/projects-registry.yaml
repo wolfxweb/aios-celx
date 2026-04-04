@@ -1,5 +1,5 @@
 version: 1
-updatedAt: 2026-04-03T20:33:47.248Z
+updatedAt: 2026-04-04T00:24:45.317Z
 projects:
   - id: bloc3-smoke
     name: SaaS webapp
@@ -97,7 +97,7 @@ projects:
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-01T23:04:33.723Z
-    updatedAt: 2026-04-01T23:04:33.778Z
+    updatedAt: 2026-04-04T00:24:45.310Z
     priority: medium
     tags: []
   - id: crm-comercial
@@ -106,7 +106,7 @@ projects:
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-02T22:51:03.141Z
-    updatedAt: 2026-04-02T22:51:03.157Z
+    updatedAt: 2026-04-04T00:24:45.313Z
     priority: medium
     tags: []
   - id: amigo-secreto-online
@@ -124,7 +124,16 @@ projects:
     blueprint: saas-webapp
     status: active
     createdAt: 2026-04-03T20:33:47.218Z
-    updatedAt: 2026-04-03T20:33:47.237Z
+    updatedAt: 2026-04-04T00:24:45.306Z
+    priority: medium
+    tags: []
+  - id: forgeos
+    name: Forgeos
+    path: projects/forgeos
+    blueprint: saas-webapp
+    status: active
+    createdAt: 2026-04-04T00:24:45.224Z
+    updatedAt: 2026-04-04T00:24:45.316Z
     priority: medium
     tags: []
 

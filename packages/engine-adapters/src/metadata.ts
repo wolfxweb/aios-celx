@@ -11,13 +11,13 @@ export const ENGINE_ADAPTERS: EngineAdapter[] = [
     id: "claude-code",
     label: "Claude Code",
     kind: "cloud",
-    description: "Placeholder for future Claude / Claude Code integration.",
+    description: "Runs the local Claude Code CLI for real project edits when installed.",
   },
   {
     id: "codex",
     label: "OpenAI Codex",
     kind: "cloud",
-    description: "Placeholder for future Codex-style integration.",
+    description: "Runs the local Codex CLI for real project edits when installed.",
   },
   {
     id: "cursor",
